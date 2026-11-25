@@ -2,6 +2,12 @@
 
 **Speak one sentence. Tap approve. Know where every rupee is.**
 
+> ### 🌱 Do you use AI to split your bills or record your transactions?
+> NMS ₹ manager does it right on your phone — **without going to AI every time**.
+> Fewer tokens consumed, less electricity wasted: **more for the environment, less on the carbon bill.**
+>
+> No AI call per entry · Works offline · Data stays on your phone
+
 A personal cash book for the phone. Say *"Paid Ramesh 2000 cash for Society Fund"* and the app works out the amount, the person or head, cash or bank and the date, then shows a card you approve with one tap. It keeps cash in hand, who owes you, whom you owe, hand loans and trip splits tallied, and it runs on iPhone and Android without internet.
 
 **Open the app:** https://nimit010.github.io/nms-rupee-manager/
@@ -27,6 +33,7 @@ A personal cash book for the phone. Say *"Paid Ramesh 2000 cash for Society Fund
 | **WhatsApp notes** | Approve + WhatsApp opens WhatsApp with an acknowledgement and the balance due; you pick the contact. |
 | **Receipt photos** | Take a photo with the entry; view it later from the day book. |
 | **Splits** | Trips, outings, dinners. Speak many expenses at once, weighted shares, rounding to ₹1/10/50/100 with no loose change, fewest payments to settle, post your part to the ledger, close with a one-line log. |
+| **No AI needed** | Amounts, names, heads, Hindi-English and misheard words are worked out on the phone itself — no AI server, no tokens, no internet for each entry. |
 | **Offline and private** | Data stays on the phone (IndexedDB). Backup to a file, WhatsApp or Google Drive; restore on a new phone. |
 
 <p>
