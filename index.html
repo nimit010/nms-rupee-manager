@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffd84a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="NMS ₹ manager">
+<title>NMS ₹ manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* VOICE: a treasurer's pocket rokad book — calm, exact, nothing decorative
+   IDEA: the cash book page: one yellow-flagged "cash in hand" line, ruled ledger rows below
+   PICTURE: the live ledger itself — names, nets, receivable/payable at a glance
+   COLOUR and TYPE: white / ink #101418, warm yellow #ffd84a slab only behind cash in hand, green receivable, red payable; Manrope
+   LAYOUT: phone first, 560px column; cash slab, ledger, hand loans, day book; thumb bar fixed at bottom */
+:root{color-scheme:light dark;
+--bg:light-dark(#ffffff,#101418);--ink:light-dark(#101418,#eef1f3);--mute:light-dark(#5b6670,#9aa5ae);
+--line:light-dark(#e4e8eb,#262c31);--soft:light-dark(#f4f6f7,#181d21);--card:light-dark(#ffffff,#14191d);
+--y:#ffd84a;--yink:#101418;--rcv:light-dark(#0a7d4f,#4cc38a);--pay:light-dark(#c8321e,#ff7a66);--acc:light-dark(#101418,#ffd84a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Manrope,system-ui,sans-serif;overflow-x:clip;padding-bottom:200px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid #2f7de1;outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+header{background:var(--y);color:var(--yink)}
+.top{display:flex;align-items:center;justify-content:space-between;padding-top:14px}
+.brand{font-weight:800;font-size:15px;letter-spacing:.01em}
+.brand small{font-weight:600;opacity:.7;margin-left:6px}
+.icon{width:44px;height:44px;border-radius:12px;border:0;background:rgba(16,20,24,.08);display:grid;place-items:center}
+.icon svg{width:22px;height:22px}
+.cih{padding:10px 0 18px}
+.cih .lab{font-size:14px;font-weight:600}
+.cih .big{font-size:clamp(40px,13vw,58px);font-weight:800;line-height:1.05;font-variant-numeric:tabular-nums;white-space:nowrap}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-bottom:18px}
+.duo div{background:rgba(255,255,255,.55);border-radius:14px;padding:10px 12px}
+.duo b{display:block;font-size:20px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.duo span{font-size:13px;font-weight:600}
+.note{font-size:13px;color:var(--mute);padding:8px 0}
+.note.warn{color:var(--pay)}
+section{padding-top:22px}
+h2{font-size:20px;margin:0;line-height:1.2}
+.hrow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:10px}
+.hrow .sum{font-size:13px;color:var(--mute);text-align:right}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:0 14px;height:36px;font-size:14px;font-weight:600}
+.chip[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.search{width:100%;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--soft);padding:0 12px;font-size:16px;margin:8px 0}
+.list{border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center;padding:12px 2px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;min-height:60px}
+.row .nm{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .sub{font-size:13px;color:var(--mute);grid-column:1}
+.row .amt{text-align:right;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;grid-row:1/3;grid-column:2}
+.row .amt small{display:block;font-size:12px;font-weight:600}
+.badge{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:1px 6px;margin-left:6px;background:var(--y);color:var(--yink);vertical-align:2px}
+.badge.b{background:var(--soft);color:var(--mute);border:1px solid var(--line)}
+.r{color:var(--rcv)}.p{color:var(--pay)}.z{color:var(--mute)}
+.empty{padding:18px 4px;color:var(--mute);font-size:15px}
+.empty q{color:var(--ink);font-weight:600}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:3px;gap:3px}
+.seg button{border:0;background:none;border-radius:9px;min-height:40px;font-size:14px;font-weight:700;padding:0 6px}
+.seg button[aria-pressed=true]{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.day{font-size:13px;font-weight:700;color:var(--mute);padding:14px 2px 4px}
+.tx{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line);width:100%;background:none;border-left:0;border-right:0;border-top:0;text-align:left;min-height:56px}
+.tx .dot{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:18px;background:var(--soft)}
+.tx .t1{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx .t2{font-size:13px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tx .ta{text-align:right;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tx .ta small{display:block;font-size:11px;font-weight:600;color:var(--mute)}
+.thumb{width:34px;height:34px;border-radius:8px;object-fit:cover;display:block}
+.more{width:100%;height:44px;border:1px solid var(--line);border-radius:12px;background:var(--card);font-weight:700;margin-top:10px}
+.foot{display:flex;flex-wrap:wrap;gap:8px;padding:22px 0 8px}
+.foot button{flex:1 1 150px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--soft);font-weight:700;font-size:14px}
+/* bottom bar */
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 12px calc(10px + env(safe-area-inset-bottom));z-index:20}
+.bar .in{max-width:560px;margin:0 auto;display:grid;gap:8px}
+.bar textarea{min-height:64px;max-height:140px;border-radius:14px;border:1px solid var(--line);background:var(--soft);padding:10px 14px;font-size:17px;line-height:1.4;width:100%;resize:none}
+.keys{display:grid;grid-template-columns:auto auto auto minmax(0,1fr);gap:8px}
+.go{height:50px;border:0;border-radius:14px;background:#1f8f4e;color:#fff;font-weight:800;font-size:17px}
+.go:disabled{opacity:.45}
+.bb{width:50px;height:50px;border-radius:14px;border:0;display:grid;place-items:center;background:var(--soft)}
+.bb svg{width:24px;height:24px}
+.bb.mic{background:var(--ink);color:var(--bg)}
+.bb.mic.on{background:var(--pay);color:#fff;animation:pulse 1.2s infinite}
+@keyframes pulse{50%{transform:scale(1.07)}}
+@media(prefers-reduced-motion:reduce){.bb.mic.on{animation:none}.sheet .pan{transition:none}}
+.hint{max-width:560px;margin:6px auto 0;font-size:12px;color:var(--mute);min-height:16px;padding:0 2px}
+/* sheets */
+.sheet{position:fixed;inset:0;z-index:40;display:none}
+.sheet.open{display:block}
+.sheet .bk{position:absolute;inset:0;background:rgba(0,0,0,.45)}
+.sheet .pan{position:absolute;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:8px 16px calc(20px + env(safe-area-inset-bottom));max-width:600px;margin:0 auto;transform:translateY(0);transition:transform .2s}
+.grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:4px auto 10px}
+.sh{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+.sh h3{margin:0;font-size:22px;line-height:1.15}
+.x{width:44px;height:44px;border-radius:12px;border:0;background:var(--soft);font-size:22px}
+.fld{margin-top:12px}
+.fld label{display:block;font-size:13px;font-weight:700;color:var(--mute);margin-bottom:5px}
+.fld input,.fld select,.fld textarea{width:100%;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--soft);padding:10px 12px;font-size:16px}
+.fld textarea{min-height:70px;resize:vertical}
+.amtin{font-size:26px!important;font-weight:800;font-variant-numeric:tabular-nums}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.primary{width:100%;height:52px;border:0;border-radius:14px;background:var(--ink);color:var(--bg);font-weight:800;font-size:17px;margin-top:16px}
+.ghost{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-weight:700;padding:0 14px;font-size:14px}
+.danger{color:var(--pay)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.acts>*{flex:1 1 130px}
+.ph{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ph img{width:72px;height:72px;object-fit:cover;border-radius:10px;border:1px solid var(--line)}
+.status{font-size:14px;color:var(--pay);font-weight:600;min-height:18px;margin-top:6px}
+.heard b{font-size:16px}
+.heard{background:var(--soft);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--mute)}
+.heard b{color:var(--ink);font-weight:600}
+.pbig{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums}
+.viewer{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.92);display:none;place-items:center;padding:16px}
+.viewer.open{display:grid}
+.viewer img{max-width:100%;max-height:86vh;border-radius:8px}
+.toast{position:fixed;left:50%;top:14px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:12px;font-size:14px;font-weight:600;display:none;z-index:70;gap:12px;align-items:center;max-width:calc(100vw - 32px)}
+.toast.open{display:flex}
+.toast button{background:none;border:0;color:var(--y);font-weight:800;min-height:36px}
+.tabs{margin-bottom:16px;background:rgba(255,255,255,.5);border-color:rgba(16,20,24,.12)}
+.tabs button[aria-pressed=true]{background:#101418;color:#fff}
+body.split .bar{display:none}body.split{padding-bottom:40px}
+.chk{display:flex;gap:10px;align-items:center;min-height:44px;font-weight:600;margin-top:8px}
+.chk input{width:22px;height:22px}
+.grid{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));gap:0 8px;font-size:14px;margin-top:8px}
+.grid>*{padding:9px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grid .h{font-size:12px;font-weight:700;color:var(--mute)}
+.grid .n{text-align:right}
+.grid select{min-height:32px;border:1px solid var(--line);border-radius:8px;background:var(--soft);font-size:14px;margin-left:4px;padding:0 2px}
+.tr{display:flex;justify-content:space-between;gap:10px;padding:11px 2px;border-bottom:1px solid var(--line);font-weight:600}
+.tr b{white-space:nowrap;font-variant-numeric:tabular-nums}
+.it{display:grid;grid-template-columns:minmax(0,1fr) auto 44px;gap:8px;align-items:center;padding:6px 2px;border-bottom:1px solid var(--line);font-size:14px}
+.it b{white-space:nowrap;font-variant-numeric:tabular-nums}
+.it button{width:40px;height:40px;border:0;border-radius:10px;background:var(--soft);font-size:18px}
+.sub3{font-size:13px;color:var(--mute)}
+h4{margin:20px 0 4px;font-size:16px}
+.addrow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:8px}
+.addrow>*{min-height:46px;border-radius:12px;border:1px solid var(--line);background:var(--soft);padding:0 10px;font-size:16px;width:100%}
+.addrow .wide{grid-column:1/-1}
+.ok{background:light-dark(#e6f4ec,#173226);color:var(--rcv);border-radius:12px;padding:10px 12px;font-weight:600;font-size:14px;margin-top:10px}
+details.log summary{min-height:44px;display:flex;align-items:center;font-weight:800;font-size:20px;cursor:pointer}
+details.log summary span{font-size:13px;color:var(--mute);font-weight:600;margin-left:8px}
+.logl{padding:10px 2px;border-bottom:1px solid var(--line);font-size:14px}
+.logl b{display:block}
+.wa{display:flex;align-items:center;justify-content:center;text-decoration:none;background:#1f8f4e;color:#fff}
+.goes{font-size:13px;color:var(--mute);margin-top:6px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.goes button{border:1px solid var(--line);background:var(--soft);border-radius:999px;min-height:34px;padding:0 12px;font-weight:700;font-size:13px;color:var(--ink)}
+.sg{flex-wrap:wrap;overflow:visible;margin-top:8px}
+.sg .chip{height:40px}
+.kline{font-size:clamp(24px,7vw,30px);font-weight:800;line-height:1.2;margin:4px 0 10px;text-wrap:balance}
+.kline .r,.kline .p{white-space:nowrap}
+.kmeta{display:flex;flex-wrap:wrap;gap:6px}
+.kmeta button{height:40px;border-radius:999px;border:1px solid var(--line);background:var(--soft);padding:0 14px;font-weight:700;font-size:14px}
+.kmeta button span{color:var(--mute);font-weight:600;margin-right:4px}
+.kname{margin-top:10px}.kname input{width:100%;min-height:48px;border-radius:12px;border:1px solid var(--line);background:var(--soft);padding:0 12px;font-size:17px}
+.kbal{margin-top:12px;font-size:15px;font-weight:600}
+.kbal:empty{display:none}
+a.primary.wa{margin-top:10px}
+.keys2{display:flex;gap:8px;margin-top:8px}.keys2>*{flex:1}.keys2 .ghost{height:50px}
+.narr{width:100%;min-height:84px;border-radius:12px;border:1px solid var(--line);background:var(--soft);padding:10px 12px;font-size:17px;line-height:1.4;resize:vertical}
+.prev{margin-top:10px;border-top:1px solid var(--line)}
+.pv{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.2fr) minmax(0,.85fr) 40px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.pv select,.pv input{min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--soft);padding:0 8px;font-size:16px;width:100%}
+.pv button{width:40px;height:40px;border:0;border-radius:10px;background:var(--soft);font-size:18px}
+.pv .wide{grid-column:1/-1}
+textarea.csv{width:100%;min-height:160px;font-size:13px;border-radius:12px;border:1px solid var(--line);background:var(--soft);padding:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">NMS ₹ manager</div>
+      <button class="icon" id="btnSet" aria-label="Settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
+    </div>
+    <div class="cih"><div class="lab">Cash in hand</div><div class="big" id="cash">₹0</div></div>
+    <div class="duo">
+      <div><span>To receive</span><b id="totR">₹0</b></div>
+      <div><span>To pay</span><b id="totP">₹0</b></div>
+    </div>
+    <div class="seg tabs" id="tabs"><button data-v="book" aria-pressed="true">Book</button><button data-v="split" aria-pressed="false">Split</button></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="note" id="storeNote">Loading your book…</div>
+<div id="vBook">
+
+  <section id="secLedger">
+    <div class="hrow"><h2>Ledger</h2><div class="sum" id="ledSum"></div></div>
+    <div class="chips" id="ledChips">
+      <button class="chip" data-f="open" aria-pressed="true">Open</button>
+      <button class="chip" data-f="r" aria-pressed="false">Receivable</button>
+      <button class="chip" data-f="p" aria-pressed="false">Payable</button>
+      <button class="chip" data-f="heads" aria-pressed="false">Heads</button>
+      <button class="chip" data-f="all" aria-pressed="false">All incl. settled</button>
+    </div>
+    <input class="search" id="q" type="search" placeholder="Search a name or head" aria-label="Search ledger">
+    <div class="list" id="ledger"></div>
+  </section>
+
+  <section id="secLoans">
+    <div class="hrow"><h2>Hand loans</h2><div class="sum" id="loanSum"></div></div>
+    <div class="seg" id="loanTab"><button data-v="given" aria-pressed="true">Given by me</button><button data-v="taken" aria-pressed="false">Taken by me</button></div>
+    <div class="list" id="loans" style="margin-top:10px"></div>
+  </section>
+
+  <section id="secBook">
+    <div class="hrow"><h2>Day book</h2><div class="sum" id="bookSum"></div></div>
+    <div id="book"></div>
+    <button class="more" id="moreBook" hidden>Show older entries</button>
+  </section>
+
+  <div class="foot">
+    <button id="btnCsv">Copy all as CSV</button>
+    <button id="btnAdd2">Add entry by hand</button>
+  </div>
+</div>
+<div id="vSplit" hidden>
+  <section>
+    <div class="hrow"><h2>Split</h2><div class="sum" id="spSum"></div></div>
+    <button class="primary" id="spNew" style="margin-top:0">New split — trip, dinner, outing</button>
+    <div class="list" id="spList" style="margin-top:12px"></div>
+  </section>
+  <section>
+    <details class="log"><summary>Closed log <span id="spLogN"></span></summary><div id="spLog"></div></details>
+  </section>
+</div>
+</main>
+
+<div class="bar">
+  <form class="in" id="quick" autocomplete="off">
+    <textarea id="say" rows="2" placeholder="Speak or type the narration — e.g. Paid Pavan 2000 cash for BDP" aria-label="Narration of a transaction" enterkeyhint="go"></textarea>
+    <div class="keys">
+    <button type="button" class="bb mic" id="mic" aria-label="Speak a transaction"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 17v5M8 22h8"/></svg></button>
+    <button type="button" class="bb" id="cam" aria-label="Photo of a receipt"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h3l2-3h6l2 3h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="4"/></svg></button>
+    <button type="button" class="bb" id="plus" aria-label="Add entry"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button type="submit" class="go" id="goBtn">Go</button>
+    </div>
+  </form>
+  <div class="hint" id="hint">Works with Wispr Flow or your keyboard mic: dictate into the box, then tap Go.</div>
+  <input type="file" id="camFile" accept="image/*" capture="environment" hidden>
+</div>
+
+<!-- Entry sheet -->
+<div class="sheet" id="shEntry" role="dialog" aria-modal="true" aria-labelledby="eTitle">
+  <div class="bk" data-close></div>
+  <div class="pan">
+    <div class="grab"></div>
+    <div class="sh"><h3 id="eTitle">New entry</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="heard" id="eHeard" hidden></div>
+    <div class="fld"><label>Money</label>
+      <div class="seg" id="fDir"><button data-v="in">I received</button><button data-v="out">I paid / gave</button></div></div>
+    <div class="seg" id="fCat" hidden data-v="gen"><button data-v="gen"></button><button data-v="head"></button><button data-v="loan"></button><button data-v="self"></button></div>
+    <div class="fld" id="wName"><label for="fName" id="lName">Name or head</label><input id="fName" autocomplete="off" autocapitalize="words" placeholder="Pavan, BDP… (blank = own cash)"><div class="chips sg" id="sgName" hidden></div><div class="goes" id="fGoes"></div></div>
+    <select id="fHead" hidden></select>
+    <div class="fld" id="wWho"><label for="fWho" id="lWho">Collected from (optional)</label><input id="fWho" autocomplete="off" autocapitalize="words"><div class="chips sg" id="sgWho" hidden></div></div>
+    <div class="two">
+      <div class="fld"><label for="fAmt">Amount ₹</label><input id="fAmt" class="amtin" inputmode="decimal" placeholder="0"></div>
+      <div class="fld"><label for="fDate">Date</label><input id="fDate" type="date"></div>
+    </div>
+    <div class="fld"><label>Paid by</label><div class="seg" id="fMode"><button data-v="cash">Cash</button><button data-v="bank">Bank / UPI</button></div></div>
+    <div class="fld"><label for="fNote">Note</label><textarea id="fNote" placeholder="What was it for?"></textarea></div>
+    <div class="fld"><label>Photo record</label>
+      <div class="ph"><span id="fPhPrev"></span><button type="button" class="ghost" id="fPhBtn">Attach photo</button><button type="button" class="ghost" id="fPhDel" hidden>Remove</button></div>
+      <input type="file" id="fPhFile" accept="image/*" hidden>
+    </div>
+    <div class="acts" id="aiActs" hidden><button type="button" class="ghost" id="btnAiText">Let Claude read my words</button><button type="button" class="ghost" id="btnAiPhoto">Let Claude read the photo</button></div>
+    <div class="status" id="eStatus"></div>
+    <button class="primary" id="btnSave">Save entry</button>
+    <div class="acts"><button type="button" class="ghost danger" id="btnDel" hidden>Delete entry</button></div>
+  </div>
+</div>
+
+<!-- Approve card -->
+<div class="sheet" id="shCard" role="dialog" aria-modal="true" aria-labelledby="kLine">
+  <div class="bk" data-close></div>
+  <div class="pan">
+    <div class="grab"></div>
+    <div class="sh"><span class="sub3" id="kHeard"></span><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="kline" id="kLine"></div>
+    <div class="kmeta" id="kMeta"></div>
+    <div class="kname" id="kNameW" hidden><input id="kName" autocomplete="off" autocapitalize="words" placeholder="Name or head" aria-label="Correct the name"><div class="chips sg" id="sgK"></div></div>
+    <div class="kbal" id="kBal"></div>
+    <div class="status" id="kStatus"></div>
+    <button class="primary" id="kOk">Approve</button>
+    <a class="primary wa" id="kWa" href="https://wa.me/" target="_blank" rel="noopener">Approve + WhatsApp note</a>
+    <div class="acts"><button class="ghost" id="kEdit">Edit</button><button class="ghost" data-close>Discard</button></div>
+  </div>
+</div>
+
+<!-- Party sheet -->
+<div class="sheet" id="shParty" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+  <div class="bk" data-close></div>
+  <div class="pan">
+    <div class="grab"></div>
+    <div class="sh"><h3 id="pTitle"></h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="pbig" id="pBal"></div>
+    <div class="note" id="pSub"></div>
+    <div class="acts"><button class="ghost" id="pSettle">Settle</button><button class="ghost" id="pAdd">Add entry</button><button class="ghost" id="pCopy">Copy statement</button><button class="ghost" id="pWa">WhatsApp</button></div>
+    <div id="pList" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- New split sheet -->
+<div class="sheet" id="shSpNew" role="dialog" aria-modal="true" aria-labelledby="snTitle">
+  <div class="bk" data-close></div>
+  <div class="pan">
+    <div class="grab"></div>
+    <div class="sh"><h3 id="snTitle">New split</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="fld"><label for="snName">Event name</label><input id="snName" placeholder="Goa trip, friends dinner…"></div>
+    <div class="fld"><label for="snPeople">Who is in it (comma or one per line)</label><textarea id="snPeople" placeholder="Pavan, Yashveer, Maksud"></textarea><div class="chips sg" id="sgSn"></div></div>
+    <label class="chk"><input type="checkbox" id="snMe" checked> Include me</label>
+    <div class="fld"><label>Round each share to</label><div class="seg" id="snR"><button data-v="1">Exact ₹1</button><button data-v="10">₹10</button><button data-v="50">₹50</button><button data-v="100">₹100</button></div></div>
+    <div class="fld"><label for="snDate">Date</label><input id="snDate" type="date"></div>
+    <div class="status" id="snStatus"></div>
+    <button class="primary" id="snSave">Create split</button>
+  </div>
+</div>
+
+<!-- Split detail sheet -->
+<div class="sheet" id="shSp" role="dialog" aria-modal="true" aria-labelledby="spTitle">
+  <div class="bk" data-close></div>
+  <div class="pan">
+    <div class="grab"></div>
+    <div class="sh"><h3 id="spTitle"></h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div id="spBody"></div>
+  </div>
+</div>
+
+<!-- WhatsApp sheet -->
+<div class="sheet" id="shWa" role="dialog" aria-modal="true" aria-labelledby="wTitle">
+  <div class="bk" data-close></div>
+  <div class="pan">
+    <div class="grab"></div>
+    <div class="sh"><h3 id="wTitle">Send a note</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="note">Edit if you like. WhatsApp opens with this text and you choose who to send it to.</div>
+    <div class="fld"><textarea id="wTxt" rows="6" aria-label="Message"></textarea></div>
+    <a class="primary wa" id="wGo" href="https://wa.me/" target="_blank" rel="noopener">Open WhatsApp</a>
+    <div class="acts"><button class="ghost" id="wCopy">Copy text</button><button class="ghost" data-close>Skip</button></div>
+  </div>
+</div>
+
+<!-- Settings sheet -->
+<div class="sheet" id="shSet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+  <div class="bk" data-close></div>
+  <div class="pan">
+    <div class="grab"></div>
+    <div class="sh"><h3 id="sTitle">Settings</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="fld"><label for="sOpen">Opening cash in hand ₹</label><input id="sOpen" inputmode="decimal"></div>
+    <div class="fld"><label for="sHeads">Heads you collect or pay for (one per line)</label><textarea id="sHeads" rows="5"></textarea></div>
+    <div class="fld"><label for="sPeople">Regular people (one per line — new names are learnt as you enter them)</label><textarea id="sPeople" rows="5"></textarea></div>
+    <button class="primary" id="sSave">Save settings</button>
+    <div class="note" id="sAlias"></div><button class="ghost" id="sAliasClr" hidden>Forget learnt name corrections</button>
+    <div class="note" id="sStore"></div>
+    <div class="acts"><button class="ghost" id="sImport" hidden>Move phone-only entries to my book</button></div>
+    <h4>Backup</h4>
+    <div class="note" id="sLast"></div>
+    <div class="acts"><button class="ghost" id="bSave">Save backup file</button><button class="ghost" id="bShare">Share backup (WhatsApp / Drive)</button></div>
+    <div class="acts"><button class="ghost" id="bOpen">Restore from file</button><button class="ghost" id="bPaste">Paste backup text</button></div>
+    <input type="file" id="bFile" accept=".json,application/json,text/plain" hidden>
+    <div id="bPasteW" hidden><textarea class="csv" id="bTxt" placeholder="Paste the text copied with “Copy backup for the phone app” in the Claude version"></textarea><button class="ghost" id="bPasteGo" style="width:100%;margin-top:8px">Restore this</button></div>
+    <div class="status" id="bStatus"></div>
+  </div>
+</div>
+
+<!-- CSV sheet -->
+<div class="sheet" id="shCsv" role="dialog" aria-modal="true" aria-labelledby="cTitle">
+  <div class="bk" data-close></div>
+  <div class="pan">
+    <div class="grab"></div>
+    <div class="sh"><h3 id="cTitle">Copy text</h3><button class="x" data-close aria-label="Close">×</button></div>
+    <div class="note">Select all and copy if the button did not.</div>
+    <textarea class="csv" id="cTxt" readonly></textarea>
+  </div>
+</div>
+
+<div class="viewer" id="viewer"><img id="vImg" alt="Receipt photo"></div>
+<div class="toast" id="toast"><span id="tMsg"></span><button id="tUndo" hidden>Undo</button></div>
+<datalist id="dlNames"></datalist>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr=n=>'₹'+Math.abs(Math.round((+n||0)*100)/100).toLocaleString('en-IN',{maximumFractionDigits:2});
+const today=()=>{const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const shift=(k)=>{const d=new Date();d.setDate(d.getDate()+k);d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)};
+const nice=d=>{if(!d)return'';if(d===today())return'Today';if(d===shift(-1))return'Yesterday';const x=new Date(d+'T00:00');return x.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:x.getFullYear()===new Date().getFullYear()?undefined:'numeric'})};
+const days=d=>Math.max(0,Math.round((new Date(today())-new Date(d))/864e5));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const title=s=>s.replace(/\s+/g,' ').trim().replace(/\b\w/g,c=>c.toUpperCase());
+const okImg=u=>typeof u==='string'&&(u.startsWith('/_blob/')||u.startsWith('data:image/'));
+const DEF_HEADS=['BDP','Concorde Luxepolis AOA','FAM','Event'],DEF_PEOPLE=['Pavan','Yashveer','Maksud'];
+const OLDH={'bora deluxe':'BDP','luxepolis aoa':'Concorde Luxepolis AOA'};
+const ALIAS={'bdp':['bdp','b d p','b.d.p','bora deluxe palace','bora deluxe','bora palace','bora','b bora'],'concorde luxepolis aoa':['concorde luxepolis','concorde','luxepolis','lux police','luxe police','luxe palace','lux palace','luxe polis','lux polis','aoa','association','society'],'fam':['fam','federation'],'event':['event','function']};
+const fixHeads=a=>[...new Set(a.map(h=>OLDH[String(h).toLowerCase()]||String(h)))];
+// phonetic key so Maqsood→Maksud, Pawan→Pavan, Yashvir→Yashveer
+const pkey=n=>{let t=String(n).toLowerCase().replace(/[^a-z]/g,'').replace(/q/g,'k').replace(/z/g,'j').replace(/w/g,'v').replace(/ph/g,'f').replace(/ck/g,'k').replace(/h/g,'').replace(/(.)\1+/g,'$1');return t?t[0]+t.slice(1).replace(/[aeiouy]/g,''):''};
+function known(){const c=new Map();const add=(n,w)=>{if(!n)return;const k=n.toLowerCase(),r=c.get(k)||{n,c:0};r.c+=w;c.set(k,r)};for(const n of S.people||[])add(n,0);for(const n of S.heads)add(n,0);for(const x of T){add(x.acct,1);add(x.who,1)}for(const e of SP)for(const p of e.people||[])if(p.n!=='Me')add(p.n,.5);return[...c.values()].sort((a,b)=>b.c-a.c||a.n.localeCompare(b.n)).map(r=>r.n)}
+
+let T=[],SP=[],S={opening:0,heads:DEF_HEADS.slice(),people:DEF_PEOPLE.slice()};
+const ME='Me';
+const HINT='Tap the mic and speak, or dictate with Wispr Flow / your keyboard, then tap Go.';
+let db=null,assets=null,sample=null,dict=null,mode='local',canImages=false;
+let ledF='open',loanTab='given',bookN=30,cur=null,party=null;
+
+/* ---------- storage ---------- */
+const LK='nmscms.v1';
+function lsLoad(){try{const o=JSON.parse(localStorage.getItem(LK)||'{}');return{t:Array.isArray(o.t)?o.t:[],sp:Array.isArray(o.sp)?o.sp:[],s:o.s||null}}catch(e){return{t:[],sp:[],s:null}}}
+const IDB={p:null,open(){return this.p||(this.p=new Promise((res,rej)=>{const r=indexedDB.open('nms-ka-paisa',1);r.onupgradeneeded=()=>r.result.createObjectStore('kv');r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}))},
+  async get(k){const d=await this.open();return new Promise((res,rej)=>{const q=d.transaction('kv').objectStore('kv').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})},
+  async put(k,v){const d=await this.open();return new Promise((res,rej)=>{const tx=d.transaction('kv','readwrite');tx.objectStore('kv').put(v,k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}};
+let saveT=null,ready=false;
+function lsSave(){if(!ready)return;clearTimeout(saveT);saveT=setTimeout(()=>IDB.put('book',{t:T,sp:SP,s:S}).catch(()=>toast('Could not save on this phone')),250)}
+{const l=lsLoad();T=l.t;SP=l.sp;if(l.s)S=Object.assign(S,l.s);S.heads=fixHeads(S.heads);if(!Array.isArray(S.people))S.people=DEF_PEOPLE.slice()}
+async function putSp(x){if(mode==='db')await db.collection('splits').doc(x.id).set(x);else{const i=SP.findIndex(y=>y.id===x.id);if(i>=0)SP[i]=x;else SP.push(x);lsSave();renderSplit()}}
+async function delSp(id){if(mode==='db')await db.collection('splits').doc(id).delete();else{SP=SP.filter(y=>y.id!==id);lsSave();renderSplit()}}
+async function putTx(x){
+  if(mode==='db'){await db.collection('txns').doc(x.id).set(x)}
+  else{const i=T.findIndex(y=>y.id===x.id);if(i>=0)T[i]=x;else T.push(x);lsSave();render()}
+}
+async function delTx(id){
+  if(mode==='db'){await db.collection('txns').doc(id).delete()}
+  else{T=T.filter(y=>y.id!==id);lsSave();render()}
+}
+async function putSet(){if(mode==='db')await db.doc('meta/settings').set({opening:+S.opening||0,heads:S.heads,people:S.people,alias:S.alias||{}});else{lsSave();render()}}
+
+/* ---------- books ---------- */
+function books(){
+  const L=new Map(),H=new Map();let cash=+S.opening||0;
+  const sorted=T.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')||(a.ts||0)-(b.ts||0));
+  for(const x of sorted){
+    const a=+x.amt||0;
+    if(x.mode==='cash')cash+=x.dir==='in'?a:-a;
+    if(x.cat==='self'||!x.acct)continue;
+    const M=x.cat==='loan'?H:L,k=x.acct.toLowerCase();
+    const r=M.get(k)||{name:x.acct,bal:0,n:0,last:'',since:'',head:false};
+    const was=Math.abs(r.bal)<.5;
+    r.bal+=x.dir==='out'?a:-a;r.n++;r.last=x.date;
+    if(was&&Math.abs(r.bal)>=.5)r.since=x.date;
+    if(x.cat==='head'||S.heads.some(h=>h.toLowerCase()===k))r.head=true;
+    M.set(k,r);
+  }
+  for(const M of[L,H])for(const r of M.values())r.bal=Math.round(r.bal*100)/100;
+  return{L:[...L.values()],H:[...H.values()],cash};
+}
+
+/* ---------- render ---------- */
+function render(){
+  const B=books();
+  $('#cash').textContent=(B.cash<0?'−':'')+inr(B.cash);
+  const R=B.L.filter(r=>r.bal>=.5),P=B.L.filter(r=>r.bal<=-.5);
+  $('#totR').textContent=inr(R.reduce((s,r)=>s+r.bal,0));
+  $('#totP').textContent=inr(P.reduce((s,r)=>s-r.bal,0));
+  $('#ledSum').textContent=`${R.length} receivable · ${P.length} payable`;
+  // ledger
+  const q=$('#q').value.trim().toLowerCase();
+  let rows=B.L.filter(r=>{
+    const open=Math.abs(r.bal)>=.5;
+    if(q&&!r.name.toLowerCase().includes(q))return false;
+    if(ledF==='open')return open;if(ledF==='r')return r.bal>=.5;if(ledF==='p')return r.bal<=-.5;if(ledF==='heads')return r.head;return true;
+  }).sort((a,b)=>Math.abs(b.bal)-Math.abs(a.bal)||a.name.localeCompare(b.name));
+  $('#ledger').innerHTML=rows.length?rows.map(r=>rowHtml(r,'L')).join(''):`<div class="empty">${T.length?'Nothing here for this filter.':'No entries yet. Tap the mic and say something like <q>Collected 2,500 cash from Shah for Luxepolis AOA</q> or <q>Paid 1,200 to the electrician for Bora Deluxe</q>.'}</div>`;
+  // loans
+  const G=B.H.filter(r=>r.bal>=.5),Tk=B.H.filter(r=>r.bal<=-.5);
+  $('#loanSum').textContent=`Given ${inr(G.reduce((s,r)=>s+r.bal,0))} · Taken ${inr(Tk.reduce((s,r)=>s-r.bal,0))}`;
+  const lr=(loanTab==='given'?G:Tk).sort((a,b)=>(a.since||'').localeCompare(b.since||''));
+  $('#loans').innerHTML=lr.length?lr.map(r=>rowHtml(r,'H')).join(''):`<div class="empty">${loanTab==='given'?'No hand loans outstanding from others.':'You owe no hand loans.'} Say <q>Gave hand loan 10,000 to Ramesh</q> to add one.</div>`;
+  // day book
+  const all=T.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.ts||0)-(a.ts||0));
+  $('#bookSum').textContent=all.length?`${all.length} entries`:'';
+  let h='',last='';
+  for(const x of all.slice(0,bookN)){if(x.date!==last){h+=`<div class="day">${esc(nice(x.date))}</div>`;last=x.date}h+=txHtml(x)}
+  $('#book').innerHTML=h||'<div class="empty">Your entries will appear here, newest first.</div>';
+  $('#moreBook').hidden=all.length<=bookN;
+  // names
+  $('#dlNames').innerHTML=known().map(n=>`<option value="${esc(n)}">`).join('');
+  if(party)renderParty();
+  renderSplit();
+}
+function rowHtml(r,k){
+  const c=r.bal>=.5?'r':r.bal<=-.5?'p':'z';
+  const lab=k==='H'?(r.bal>=.5?'to get back':r.bal<=-.5?'to repay':'settled'):(r.bal>=.5?'receivable':r.bal<=-.5?'payable':'settled');
+  const sub=k==='H'&&r.since&&c!=='z'?`Since ${nice(r.since)} · ${days(r.since)} days`:`${r.n} entr${r.n>1?'ies':'y'} · last ${nice(r.last)}`;
+  return `<button class="row" data-party="${esc(r.name)}" data-k="${k}"><span class="nm">${esc(r.name)}${r.head&&k==='L'?'<span class="badge">Head</span>':''}</span><span class="amt ${c}">${inr(r.bal)}<small>${lab}</small></span><span class="sub">${esc(sub)}</span></button>`;
+}
+const CATN={gen:'',head:'Head',loan:'Hand loan',self:'Own cash'};
+function txHtml(x){
+  const inn=x.dir==='in';
+  let t1=x.cat==='self'?(x.mode==='bank'?'Bank ':'Cash ')+(inn?'in':'out'):x.acct;
+  let t2=[x.cat==='head'&&x.who?(inn?'from ':'to ')+x.who:'',CATN[x.cat],x.note].filter(Boolean).join(' · ');
+  const ph=x.photo&&okImg(x.photo.url)?`<img class="thumb" src="${esc(x.photo.url)}" alt="">`:`<span class="dot ${inn?'r':'p'}">${inn?'↓':'↑'}</span>`;
+  return `<button class="tx" data-tx="${esc(x.id)}">${ph}<span><span class="t1 d">${esc(t1)}${x.cat==='head'?'<span class="badge">Head</span>':x.cat==='loan'?'<span class="badge b">Loan</span>':''}</span><span class="t2" style="display:block">${esc(t2||(inn?'Received':'Paid'))}</span></span><span class="ta ${inn?'r':'p'}">${inn?'+':'−'}${inr(x.amt)}<small>${x.mode==='bank'?'Bank':x.mode==='adj'?'Split':'Cash'}</small></span></button>`;
+}
+
+/* ---------- party sheet ---------- */
+function openParty(name,k){party={name,k};renderParty();open('#shParty')}
+function renderParty(){
+  const {name,k}=party,key=name.toLowerCase();
+  const xs=T.filter(x=>x.acct&&x.acct.toLowerCase()===key&&(k==='H'?x.cat==='loan':x.cat!=='loan'&&x.cat!=='self')).sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.ts||0)-(a.ts||0));
+  const bal=Math.round(xs.reduce((s,x)=>s+(x.dir==='out'?1:-1)*(+x.amt||0),0)*100)/100;
+  party.bal=bal;party.head=xs.some(x=>x.cat==='head');
+  $('#pTitle').textContent=name+(k==='H'?' · hand loan':'');
+  const c=bal>=.5?'r':bal<=-.5?'p':'z';
+  $('#pBal').className='pbig '+c;$('#pBal').textContent=inr(bal);
+  $('#pSub').textContent=bal>=.5?(k==='H'?'Owes you on hand loan':party.head?'Receivable — you spent more for this head than you collected':'Receivable — they owe you'):bal<=-.5?(k==='H'?'You owe on hand loan':party.head?'Payable — you hold this head\'s money':'Payable — you owe them'):'Settled';
+  $('#pSettle').hidden=Math.abs(bal)<.5;
+  $('#pSettle').textContent=bal>0?`Mark ${inr(bal)} received`:`Mark ${inr(bal)} paid`;
+  $('#pList').innerHTML=xs.map(txHtml).join('')||'<div class="empty">No entries.</div>';
+}
+function statement(){
+  const {name,k}=party,key=name.toLowerCase();
+  const xs=T.filter(x=>x.acct&&x.acct.toLowerCase()===key&&(k==='H'?x.cat==='loan':x.cat!=='loan'&&x.cat!=='self')).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const L=xs.map(x=>`${nice(x.date)}: ${x.dir==='in'?'Received':'Paid'} ${inr(x.amt)} (${x.mode==='bank'?'bank':x.mode==='adj'?'split share':'cash'})${x.who?' '+(x.dir==='in'?'from ':'to ')+x.who:''}${x.note?' — '+x.note:''}`);
+  L.unshift(`${name}${k==='H'?' — hand loan':''} statement`);
+  L.push(party.bal>=.5?`Balance receivable: ${inr(party.bal)}`:party.bal<=-.5?`Balance payable: ${inr(party.bal)}`:'Balance: settled');
+  return L.join('\n');
+}
+
+/* ---------- sheets ---------- */
+function open(s){$(s).classList.add('open')}
+function close(el){el.classList.remove('open');if(el.id==='shCard'){cardCtl?.abort()}if(el.id==='shParty')party=null;if(el.id==='shSp'){spId=null;spArm=false}}
+document.querySelectorAll('.sheet').forEach(sh=>sh.addEventListener('click',e=>{if(e.target.closest('[data-close]'))close(sh)}));
+$('#viewer').onclick=()=>$('#viewer').classList.remove('open');
+let tT;function toast(m,undo,lab){$('#tMsg').textContent=m;const u=$('#tUndo');u.hidden=!undo;u.textContent=lab||'Undo';u.onclick=()=>{undo&&undo();$('#toast').classList.remove('open')};$('#toast').classList.add('open');clearTimeout(tT);tT=setTimeout(()=>$('#toast').classList.remove('open'),undo?6000:2800)}
+function showText(t,ttl){$('#cTitle').textContent=ttl;$('#cTxt').value=t;open('#shCsv')}
+async function copy(t,ttl){try{await navigator.clipboard.writeText(t);toast('Copied')}catch(e){showText(t,ttl)}}
+
+/* ---------- seg helper ---------- */
+function seg(id,v){const el=$(id);el.dataset.v=v;el.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===v)))}
+['#fDir','#fCat','#fMode'].forEach(id=>$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;seg(id,b.dataset.v);syncForm()}));
+$('#loanTab').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;loanTab=b.dataset.v;seg('#loanTab',loanTab);render()});
+$('#ledChips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;ledF=b.dataset.f;document.querySelectorAll('#ledChips .chip').forEach(c=>c.setAttribute('aria-pressed',String(c===b)));render()});
+$('#q').addEventListener('input',render);
+$('#moreBook').onclick=()=>{bookN+=50;render()};
+
+/* ---------- entry form ---------- */
+const KIND={gen:'Ledger (person)',head:'Head',loan:'Hand loan',self:'Own cash'};
+function autoCat(name,text){
+  name=(name||'').trim();text=(text||'').toLowerCase();
+  if(!name)return'self';
+  const k=name.toLowerCase();
+  if(S.heads.some(h=>h.toLowerCase()===k))return'head';
+  if(/\b(hand ?loans?|loans?|udh?aa?r|karz[a]?|lent|lend|borrow\w*)\b/.test(text))return'loan';
+  const mine=T.filter(x=>x.acct&&x.acct.toLowerCase()===k);
+  if(mine.length){const B=books(),l=B.H.find(r=>r.name.toLowerCase()===k),g=B.L.find(r=>r.name.toLowerCase()===k);if(l&&Math.abs(l.bal)>=.5&&!(g&&Math.abs(g.bal)>=.5))return'loan';if(!g&&l)return'loan'}
+  return'gen';
+}
+function syncForm(){
+  if(!cur.catLock)seg('#fCat',autoCat($('#fName').value,$('#fNote').value+' '+(cur.heard||'')));
+  const c=$('#fCat').dataset.v,d=$('#fDir').dataset.v;
+  $('#wWho').hidden=c!=='head';
+  $('#lWho').textContent=d==='in'?'Collected from (optional)':'Paid to (optional)';
+  $('#fGoes').innerHTML=`Goes to: <b>${KIND[c]}</b> <button type="button" id="fGoesBtn">${cur.catLock?'Auto':'Change'}</button>`;
+  $('#fNote').placeholder=c==='self'?(d==='in'?'e.g. ATM / bank withdrawal':'e.g. deposited in bank, personal spend'):'What was it for?';
+}
+$('#fGoes').addEventListener('click',e=>{if(!e.target.closest('#fGoesBtn'))return;
+  if(cur.catLock){cur.catLock=false}else{const order=['gen','loan','head','self'],c=$('#fCat').dataset.v;seg('#fCat',order[(order.indexOf(c)+1)%4]);cur.catLock=true}
+  syncForm()});
+$('#fName').addEventListener('input',()=>syncForm());$('#fNote').addEventListener('change',()=>syncForm());
+$('#sgName').addEventListener('click',()=>setTimeout(syncForm,0));
+function fillHeads(sel){const H=S.heads.slice();if(sel&&!H.some(h=>h.toLowerCase()===sel.toLowerCase()))H.push(sel);$('#fHead').innerHTML=H.map(h=>`<option>${esc(h)}</option>`).join('');if(sel)$('#fHead').value=H.find(h=>h.toLowerCase()===sel.toLowerCase())}
+function openEntry(x,heard){
+  cur=Object.assign({id:'',dir:'in',cat:'gen',acct:'',who:'',amt:'',mode:'cash',date:today(),note:'',photo:null,heard:''},x||{});
+  $('#eTitle').textContent=cur.id?'Edit entry':'New entry';
+  seg('#fDir',cur.dir);seg('#fCat',cur.cat);seg('#fMode',cur.mode);
+  cur.catLock=!!cur.id&&cur.cat!==autoCat(cur.acct,cur.note);
+  $('#fName').value=cur.acct||'';$('#fWho').value=cur.who||'';
+  $('#fAmt').value=cur.amt?String(cur.amt):'';$('#fDate').value=cur.date||today();$('#fNote').value=cur.note||'';
+  const hd=heard||cur.heard;$('#eHeard').hidden=!hd;$('#eHeard').innerHTML=hd?`Heard: <b>${esc(hd)}</b>`:'';
+  $('#btnDel').hidden=!cur.id;$('#eStatus').textContent='';
+  $('#sgName').hidden=$('#sgWho').hidden=true;
+  showPhoto();syncForm();aiBtns();open('#shEntry');
+}
+function showPhoto(){const p=cur.photo;$('#fPhPrev').innerHTML=p&&okImg(p.url)?`<img src="${esc(p.url)}" alt="Attached photo">`:'';$('#fPhDel').hidden=!p;$('#fPhBtn').textContent=p?'Replace photo':'Attach photo'}
+function aiBtns(){$('#btnAiText').hidden=!(sample&&$('#eHeard').textContent);$('#btnAiPhoto').hidden=!(sample&&canImages&&cur.photo&&cur.blob);$('#aiActs').hidden=$('#btnAiText').hidden&&$('#btnAiPhoto').hidden}
+$('#fPhPrev').onclick=()=>{if(cur.photo&&okImg(cur.photo.url)){$('#vImg').src=cur.photo.url;$('#viewer').classList.add('open')}};
+hookSugg($('#fName'),$('#sgName'));hookSugg($('#fWho'),$('#sgWho'));
+$('#fPhBtn').onclick=()=>$('#fPhFile').click();
+$('#fPhDel').onclick=()=>{cur.photo=null;cur.blob=null;showPhoto();aiBtns()};
+$('#fPhFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(f)await attach(f,false)};
+function lev(a,b){const m=a.length,n=b.length,d=[...Array(n+1).keys()];for(let i=1;i<=m;i++){let p=d[0];d[0]=i;for(let j=1;j<=n;j++){const t=d[j];d[j]=Math.min(d[j]+1,d[j-1]+1,p+(a[i-1]===b[j-1]?0:1));p=t}}return d[n]}
+function learn(heard,name){heard=String(heard||'').trim().toLowerCase();if(!heard||!name||heard===name.toLowerCase())return;if(known().some(x=>x.toLowerCase()===heard))return;if(lev(pkey(heard),pkey(name))>2)return;S.alias=Object.assign({},S.alias||{},{[heard]:name});putSet().catch(()=>{})}
+function canon(n){n=title(n||'');if(!n)return'';const k=n.toLowerCase(),K=known();const al=(S.alias||{})[k];if(al)return al;const ex=K.find(x=>x.toLowerCase()===k);if(ex)return ex;const pk=pkey(n);if(pk.length>=2){const f=K.find(x=>pkey(x)===pk);if(f)return f}return n}
+function sugg(inp,box){const q=inp.value.trim().toLowerCase(),pk=pkey(q);let L=known().filter(n=>n!=='Me');if(q)L=L.filter(n=>{const l=n.toLowerCase();return l.startsWith(q)||l.includes(' '+q)||(pk.length>=2&&pkey(n).startsWith(pk))}).filter(n=>n.toLowerCase()!==q);if($('#fCat').dataset.v!=='head'&&inp.id==='fName')L=L.filter(n=>!S.heads.includes(n));box.innerHTML=L.slice(0,8).map(n=>`<button type="button" class="chip" data-fill="${esc(n)}">${esc(n)}</button>`).join('');box.hidden=!L.length}
+function hookSugg(inp,box){inp.addEventListener('input',()=>sugg(inp,box));inp.addEventListener('focus',()=>sugg(inp,box));box.addEventListener('click',e=>{const b=e.target.closest('[data-fill]');if(!b)return;inp.value=b.dataset.fill;box.hidden=true})}
+$('#btnSave').onclick=async()=>{
+  const c=$('#fCat').dataset.v,amt=parseFloat(String($('#fAmt').value).replace(/[^\d.]/g,''));
+  const acct=c==='self'?'':canon($('#fName').value);
+  if(!(amt>0)){$('#eStatus').textContent='Enter an amount.';$('#fAmt').focus();return}
+  if(c!=='self'&&!acct){$('#eStatus').textContent='Enter a name or head.';return}
+  const x={id:cur.id||uid(),dir:$('#fDir').dataset.v,cat:c,acct,who:c==='head'?canon($('#fWho').value):'',amt:Math.round(amt*100)/100,mode:c==='self'?'cash':$('#fMode').dataset.v,date:$('#fDate').value||today(),note:$('#fNote').value.trim(),photo:cur.photo||null,ts:cur.ts||Date.now()};
+  if(c==='self')x.mode='cash';
+  $('#btnSave').disabled=true;
+  try{await putTx(x);close($('#shEntry'));$('#say').value='';toast(`${x.dir==='in'?'Received':'Paid'} ${inr(x.amt)} saved`,x.cat==='self'?null:()=>waOpen(waMsg(x),'Send a note'),'WhatsApp')}
+  catch(e){$('#eStatus').textContent=e&&e.code==='quota_exceeded'?'Storage is full: delete old entries or photos.':'Could not save. Only the book\'s owner can add entries.'}
+  finally{$('#btnSave').disabled=false}
+};
+$('#btnDel').onclick=async()=>{const old=T.find(y=>y.id===cur.id);if(!old)return;try{await delTx(old.id);close($('#shEntry'));toast('Entry deleted',()=>putTx(old))}catch(e){$('#eStatus').textContent='Could not delete.'}};
+
+/* ---------- photo ---------- */
+function shrink(file,max,q){return new Promise((res,rej)=>{const img=new Image(),u=URL.createObjectURL(file);img.onload=()=>{const s=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);c.toBlob(b=>b?res({blob:b,canvas:c}):rej(),'image/jpeg',q)};img.onerror=()=>{URL.revokeObjectURL(u);rej()};img.src=u})}
+async function attach(file,auto){
+  $('#eStatus').textContent='Saving photo…';
+  try{
+    const {blob,canvas}=await shrink(file,1400,.78);cur.blob=blob;
+    let photo=null;
+    if(assets){try{const a=await assets.upload(blob);photo={id:a.id,url:'/_blob/'+a.id}}catch(e){}}
+    if(!photo){const small=await shrink(file,900,.6);photo={url:small.canvas.toDataURL('image/jpeg',.6)}}
+    cur.photo=photo;showPhoto();aiBtns();$('#eStatus').textContent='Photo attached.';
+    if(auto&&sample&&canImages)readPhoto();
+  }catch(e){$('#eStatus').textContent='Could not read that image.'}
+}
+$('#cam').onclick=()=>$('#camFile').click();
+$('#camFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;openEntry({},'');await attach(f,true)};
+
+/* ---------- parser ---------- */
+const MULT={k:1e3,thousand:1e3,hazar:1e3,hazaar:1e3,hajar:1e3,lakh:1e5,lakhs:1e5,lac:1e5,lacs:1e5,crore:1e7,cr:1e7};
+function findHead(t){
+  for(const h of S.heads){const k=h.toLowerCase(),al=(ALIAS[k]||[]).concat([k]);for(const a of al.sort((x,y)=>y.length-x.length)){const r=new RegExp('\\b'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b');if(r.test(t))return{h,a}}}
+  return null;
+}
+const W1={zero:0,one:1,two:2,three:3,four:4,five:5,six:6,seven:7,eight:8,nine:9,ten:10,eleven:11,twelve:12,thirteen:13,fourteen:14,fifteen:15,sixteen:16,seventeen:17,eighteen:18,nineteen:19,twenty:20,thirty:30,forty:40,fifty:50,sixty:60,seventy:70,eighty:80,ninety:90,ek:1,do:2,teen:3,char:4,paanch:5,panch:5,das:10,bees:20,pachas:50,sau:100};
+const WS={hundred:100,sau:100,thousand:1e3,hazar:1e3,hazaar:1e3,hajar:1e3,lakh:1e5,lakhs:1e5,lac:1e5,lacs:1e5,crore:1e7};
+// "two thousand five hundred" / "2 thousand 500" -> "2500"
+function words2num(t){
+  return t.replace(/\b((?:(?:\d+(?:\.\d+)?|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|hazaa?r|hajar|lakhs?|lacs?|crore|and|sau)\s*){2,})/g,m=>{
+    const tk=m.trim().split(/\s+/).filter(w=>w!=='and');if(!tk.some(w=>w in WS||/^hazaa?r$|^hajar$/.test(w)))return m;
+    let total=0,cur=0;for(const w of tk){if(/^\d/.test(w))cur+=parseFloat(w);else if(w in W1&&!(w in WS))cur+=W1[w];else if(w==='hundred'||w==='sau')cur=(cur||1)*100;else if(w in WS){total+=(cur||1)*WS[w];cur=0}}
+    return ' '+(total+cur)+' ';
+  });
+}
+function parse(raw){
+  const o={dir:'',cat:'gen',acct:'',who:'',amt:'',mode:'cash',date:today(),note:raw.trim(),fix:''};
+  let t=' '+raw.toLowerCase().replace(/₹/g,' ').replace(/(\d),(?=\d)/g,'$1').replace(/\b(rs|inr|rupees?|rupaye|rupiya)\b\.?/g,' ')+' ';
+  t=words2num(t);
+  // speech engines often hear "to" as 2 and "for" as 4: "2000 2 Pavan", "2002 Pavan", "5004 BDP"
+  t=t.replace(/(\d)\s+(?:2|two)\s+(?!(?:cash|bank|rupees?|only|upi|gpay|online|for|to|from|and|by)\b)(?=[a-z])/g,'$1 to ').replace(/(\d)\s+(?:4|four)\s+(?!(?:cash|bank|rupees?|only|upi|gpay|online|for|to|from|and|by)\b)(?=[a-z])/g,'$1 for ');
+  t=t.replace(/\b(\d*[1-9]\d*00)([24])\s+(?!(?:cash|bank|rupees?|only|upi|gpay|online|for|to|from|and|by)\b)(?=[a-z])/g,(m,a,b)=>{const v=a+'0';o.fix=`Heard "${a}${b}" — read it as ₹${(+v).toLocaleString('en-IN')} ${b==='2'?'to':'for'}…  Change the amount if that is wrong.`;return v+(b==='2'?' to ':' for ')});
+  let best=0;for(const m of t.matchAll(/(\d+(?:\.\d+)?)\s*(k|thousand|hazaa?r|hajar|lakhs?|lacs?|crore|cr)?\b/g)){const v=parseFloat(m[1])*(MULT[m[2]]||1);if(v>best)best=v}
+  if(best)o.amt=Math.round(best*100)/100;
+  const IN=/\b(received|receive|recd|got|get|collected|collect|took|taken|take|borrowed|borrow|came|liya|liye|lia|mila|mile|aaya|aaye|aya|lidha|withdrew|withdrawn|withdraw|returned|repaid me)\b/,
+        OUT=/\b(paid|pay|gave|given|give|lent|lend|spent|spend|deposited|deposit|sent|send|transferred|diya|diye|dia|di|bheja|aapya|apya|kharcha)\b/;
+  const mi=t.match(IN),mo=t.match(OUT);
+  if(mi&&mo)o.dir=mi.index<mo.index?'in':'out';else if(mi)o.dir='in';else if(mo)o.dir='out';
+  if(/\breturned\s+(?:\d[\d.]*\s*\w*\s+)?to\b|\brepaid\s+(?:\d[\d.]*\s*\w*\s+)?to\b/.test(t))o.dir='out';
+  if(!o.dir)o.dir=/\bfrom\b|\bse\b/.test(t)?'in':/\bto\b|\bko\b/.test(t)?'out':'in';
+  if(/\b(bank|upi|gpay|g pay|google ?pay|phone ?pe|paytm|neft|rtgs|imps|cheque|check|online|transfer\w*|account)\b/.test(t))o.mode='bank';
+  if(/\bday before yesterday\b|\bparso\b/.test(t))o.date=shift(-2);else if(/\byesterday\b|\bkal\b/.test(t))o.date=shift(-1);
+  const head=findHead(t);
+  if(/\b(hand ?loans?|loans?|udh?aa?r|karz[a]?|lent|lend|borrowed|borrow)\b/.test(t))o.cat='loan';
+  else if(head)o.cat='head';
+  else if(/\b(withdr\w*|atm|deposited|deposit|bank se|bank me|personal|household|ghar)\b/.test(t))o.cat='self';
+  // name
+  const STOP='(?:for|on|towards?|against|as|via|through|in|by|cash|bank|upi|gpay|online|hand|loan|udhar|today|yesterday|and|being|of|rs|\\d)';
+  let nm='';
+  let m=t.match(new RegExp('\\b(?:from|to|by|with)\\s+(?:mr\\.?\\s+|mrs\\.?\\s+|shri\\s+|smt\\.?\\s+)?([a-z][a-z.\' ]{0,40}?)(?=\\s+'+STOP+'\\b|\\s*$)'));
+  if(m)nm=m[1];
+  if(!nm){m=t.match(/\b(?:paid|gave|given|received|got|collected|lent|sent|returned)\s+([a-z][a-z.' ]{1,30}?)\s+(?=\d)/);if(m&&!/^(cash|bank|hand|loan|udhar|the|back|money|amount|me)\b/.test(m[1]))nm=m[1]}
+  if(!nm){m=t.match(/\b([a-z]{3,}(?:\s+[a-z]{3,})?)\s+(?:se|ko|pase|ne|kane)\b/);if(m)nm=m[1].replace(/^(maine|mene|i|have|has)\s+/,'')}
+  if(!nm){const words=t.replace(/[^a-z ]/g,' ').split(/\s+/).filter(Boolean),K=known().filter(n=>n!=='Me'&&!S.heads.includes(n));
+    outer:for(const len of[3,2,1])for(let i=0;i+len<=words.length;i++){const ph=words.slice(i,i+len).join(' ');if(ph.length<3)continue;const pk=pkey(ph);const f=(S.alias||{})[ph]||K.find(n=>n.toLowerCase()===ph||(pk.length>=2&&pkey(n)===pk));if(f){nm=f.toLowerCase();break outer}}}
+  nm=nm.replace(/\b(the|my|our|mr|mrs|shri|smt|bhai|ji)\b/g,' ').replace(/\s+/g,' ').trim();
+  if(nm&&/^\d|^(me|him|her|them|us|myself|self|account|bank|atm|cash|home|ghar)$/.test(nm))nm='';
+  if(head){
+    o.acct=head.h;
+    if(nm&&nm===head.a)nm='';
+    if(nm&&findHead(' '+nm+' '))nm='';
+    if(o.cat==='head')o.who=nm?canon(nm):'';else o.acct=nm?canon(nm):'';
+  }else o.acct=nm?canon(nm):'';
+  if(o.cat==='self'&&o.acct)o.cat='gen';
+  if(o.cat==='self'&&/\bdeposit/.test(t))o.dir='out';
+  if(o.cat==='self'&&/\bwithdr|\batm\b/.test(t))o.dir='in';
+  return o;
+}
+function handle(text){text=text.trim();if(!text)return;const o=parse(text);o.heard=text;if(o.cat==='gen'&&o.acct)o.cat=autoCat(o.acct,text);openCard(o)}
+/* ---------- approve card ---------- */
+let draft=null,cardCtl=null;
+function balAfter(x){const k=(x.acct||'').toLowerCase(),loan=x.cat==='loan';if(!k||x.cat==='self')return 0;return Math.round(T.filter(y=>y.id!==x.id).concat([x]).filter(y=>y.acct&&y.acct.toLowerCase()===k&&(loan?y.cat==='loan':y.cat!=='loan'&&y.cat!=='self')).reduce((s,y)=>s+(y.dir==='out'?1:-1)*(+y.amt||0),0)*100)/100}
+function cardLine(x){
+  const a=x.amt?inr(x.amt):'₹ —',c=x.dir==='in'?'r':'p',A=`<span class="${c}">${a}</span>`,n=esc(x.acct||'—'),w=x.who?esc(x.who):'';
+  if(x.cat==='self')return x.dir==='in'?`Cash in ${A} <span class="z">(withdrawal)</span>`:`${x.mode==='bank'?'Bank':'Cash'} out ${A}`;
+  if(x.cat==='head')return x.dir==='in'?`Collected ${A} for ${n}${w?' from '+w:''}`:`Paid ${A} for ${n}${w?' to '+w:''}`;
+  if(x.cat==='loan'){const b=balAfter(x);return x.dir==='out'?(b>0?`Hand loan ${A} given to ${n}`:`Hand loan ${A} repaid to ${n}`):(b<0?`Hand loan ${A} taken from ${n}`:`Hand loan ${A} received back from ${n}`)}
+  return x.dir==='in'?`Received ${A} from ${n}`:`Paid ${A} to ${n}`;
+}
+function renderCard(){
+  const x=draft;$('#kHeard').textContent='“'+x.heard+'”';
+  $('#kLine').innerHTML=cardLine(x);
+  $('#kMeta').innerHTML=(x.cat==='self'?'':`<button data-k="name"><span>Name</span>${esc(x.acct||'add')} ✎</button>`)+`<button data-k="mode"><span>By</span>${x.mode==='bank'?'Bank / UPI':'Cash'}</button><button data-k="dir"><span>Money</span>${x.dir==='in'?'came in':'went out'}</button><button data-k="date"><span>On</span>${esc(nice(x.date))}</button>`+`<button data-k="cat"><span>Goes to</span>${esc(KIND[x.cat])}</button>`;
+  const b=balAfter(x),nm=x.acct;
+  $('#kBal').innerHTML=x.cat==='self'||!nm||!x.amt?'':b>=.5?`After this: <span class="r">${esc(nm)} ${x.cat==='head'?'owes you':'will owe you'} ${inr(b)}</span>`:b<=-.5?`After this: <span class="p">${x.cat==='head'?`you hold ${inr(b)} for ${esc(nm)}`:`you will owe ${esc(nm)} ${inr(b)}`}</span>`:`After this: <span class="z">${esc(nm)} is fully settled</span>`;
+  const miss=!(x.amt>0)?'Amount not heard — tap Edit to add it.':(!x.acct&&x.cat!=='self')?'Name or head not heard — tap Edit to add it.':'';
+  const ok=!miss;$('#kOk').disabled=!ok;$('#kWa').hidden=!ok||x.cat==='self';
+  if(ok)$('#kWa').href='https://wa.me/?text='+encodeURIComponent(waMsg(Object.assign({id:'__draft'},x)));
+  if(miss)$('#kStatus').textContent=miss;else if(x.fix)$('#kStatus').textContent=x.fix;
+}
+function openCard(o){
+  draft=Object.assign({id:'',dir:'out',cat:'gen',acct:'',who:'',amt:'',mode:'cash',date:today(),note:'',photo:null},o);
+  $('#kStatus').textContent='';$('#kNameW').hidden=true;renderCard();open('#shCard');
+  if(sample){
+    cardCtl?.abort();const ctl=cardCtl=new AbortController(),mine=draft;
+    $('#kStatus').textContent=draft.fix||'Claude is double-checking…';
+    sample.json(rules()+'\n\nThe narration:\n'+o.heard,{modelTier:'quick',signal:ctl.signal}).then(r=>{
+      if(ctl.signal.aborted||draft!==mine||!r||typeof r!=='object')return;
+      const d=Object.assign({},draft);
+      if(r.dir==='in'||r.dir==='out')d.dir=r.dir;
+      if(['gen','head','loan','self'].includes(r.cat))d.cat=r.cat;
+      if(d.cat==='head'){const h=S.heads.find(h=>h.toLowerCase()===String(r.acct||'').toLowerCase());if(h)d.acct=h;d.who=r.who?canon(String(r.who)):d.who}
+      else if(d.cat==='self'){d.acct='';d.who=''}
+      else{if(r.acct)d.acct=canon(String(r.acct));d.who=''}
+      const a=parseFloat(r.amt);if(a>0)d.amt=Math.round(a*100)/100;
+      if(r.mode==='cash'||r.mode==='bank')d.mode=r.mode;
+      if(/^\d{4}-\d{2}-\d{2}$/.test(String(r.date||'')))d.date=r.date;
+      d.fix='';draft=d;$('#kStatus').textContent='';renderCard();
+      if(!$('#kStatus').textContent)$('#kStatus').innerHTML='<span class="z">Checked by Claude.</span>';
+    }).catch(e=>{if(draft===mine&&e&&e.code!=='cancelled'){if(e.code==='not_granted'||e.code==='sampling_disabled')sample=null;$('#kStatus').textContent=draft.fix||''}});
+  }
+}
+$('#kMeta').addEventListener('click',e=>{const b=e.target.closest('[data-k]');if(!b||!draft)return;const k=b.dataset.k;
+  if(k==='mode')draft.mode=draft.mode==='bank'?'cash':'bank';
+  if(k==='dir')draft.dir=draft.dir==='in'?'out':'in';
+  if(k==='date')draft.date=draft.date===today()?shift(-1):today();
+  if(k==='cat'){const o=['gen','loan','head','self'];draft.cat=o[(o.indexOf(draft.cat)+1)%4];if(draft.cat==='self'){draft.acct='';draft.who=''}}
+  if(k==='name'){$('#kNameW').hidden=false;$('#kName').value=draft.acct||'';$('#kName').focus();sugg($('#kName'),$('#sgK'));return}
+  renderCard()});
+async function approve(){
+  const x=draft;if(!x||!(x.amt>0))return false;cardCtl?.abort();
+  const rec={id:uid(),dir:x.dir,cat:x.cat,acct:x.cat==='self'?'':x.acct,who:x.cat==='head'?x.who:'',amt:x.amt,mode:x.cat==='self'&&x.mode!=='bank'?'cash':x.mode,date:x.date,note:x.heard||x.note||'',photo:x.photo||null,ts:Date.now()};
+  try{await putTx(rec);close($('#shCard'));$('#say').value='';draft=null;toast(`${rec.dir==='in'?'Received':'Paid'} ${inr(rec.amt)} saved`,()=>delTx(rec.id),'Undo');return true}
+  catch(e){$('#kStatus').textContent='Could not save. Only the book\'s owner can add entries.';return false}
+}
+$('#kOk').onclick=approve;
+function setKName(v){if(!draft)return;const n=canon(v),prev=draft.acct,wasHead=draft.cat==='head';if(prev&&!S.heads.includes(n))learn(prev,n);draft.acct=n;draft.cat=autoCat(n,draft.heard);if(draft.cat==='head'){if(!wasHead&&prev&&prev!==n)draft.who=prev}else draft.who='';cardCtl?.abort();$('#kStatus').textContent='';renderCard()}
+hookSugg($('#kName'),$('#sgK'));
+$('#sgK').addEventListener('pointerdown',e=>e.preventDefault());
+$('#sgK').addEventListener('click',e=>{const b=e.target.closest('[data-fill]');if(b){setKName(b.dataset.fill);$('#kNameW').hidden=true}});
+$('#kName').addEventListener('blur',()=>setTimeout(()=>{if(!$('#kNameW').hidden&&$('#kName').value.trim()){setKName($('#kName').value);$('#kNameW').hidden=true}},250));
+$('#kName').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();setKName($('#kName').value);$('#kNameW').hidden=true}});
+$('#kWa').addEventListener('click',()=>{approve()});
+$('#kEdit').onclick=()=>{const x=draft;cardCtl?.abort();close($('#shCard'));openEntry(Object.assign({},x,{heard:''}),x.heard);if(x.fix)$('#eStatus').textContent=x.fix};
+$('#say').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();handle($('#say').value)}});
+$('#quick').onsubmit=e=>{e.preventDefault();handle($('#say').value)};
+$('#plus').onclick=()=>openEntry({},'');
+$('#btnAdd2').onclick=()=>openEntry({},'');
+
+/* ---------- Claude reading ---------- */
+const SHAPE='{"dir":"in"|"out","cat":"gen"|"head"|"loan"|"self","acct":string,"who":string,"amt":number,"mode":"cash"|"bank","date":"YYYY-MM-DD" or null,"note":string}';
+function rules(){
+  const names=known().slice(0,150);
+  return `You fill one entry in a personal cash book kept by an Indian treasurer. Today is ${today()}.
+dir: "in" = money came to me, "out" = money went from me.
+cat: "head" when money is collected for, or paid on behalf of, one of these heads: ${JSON.stringify(S.heads)} (acct = that head exactly; who = the person who paid me or whom I paid, or ""). Spoken forms like "lux police", "luxe palace" or "Luxepolis" mean "Concorde Luxepolis AOA"; "Bora Deluxe Palace" or "Bora" means "BDP". "loan" for a hand loan / udhar given, taken or returned (acct = the person). "self" for my own cash moving with the bank, e.g. ATM withdrawal (in) or bank deposit (out), acct "". Otherwise "gen" with acct = the person.
+mode: "bank" only for UPI, GPay, PhonePe, NEFT, RTGS, IMPS, cheque or transfer; "cash" when the narration says cash or names no method.
+amt: the rupee amount spoken. Speech-to-text often turns "to" into 2 and "for" into 4 next to the amount (e.g. "2002 Pavan" means 2000 to Pavan); correct that.
+Prefer these existing spellings of names when they match: ${JSON.stringify(names)}.
+note: a short description of what it was for.
+Reply with only one JSON object: ${SHAPE}`;
+}
+function applyAI(o){
+  if(!o||typeof o!=='object')throw 0;
+  if(o.dir==='in'||o.dir==='out')seg('#fDir',o.dir);
+  if(['gen','head','loan','self'].includes(o.cat))seg('#fCat',o.cat);
+  if(o.acct)$('#fName').value=canon(String(o.acct));
+  if(o.cat==='head')$('#fWho').value=o.who?canon(String(o.who)):'';
+  cur.catLock=['gen','head','loan','self'].includes(o.cat)&&o.cat!==autoCat($('#fName').value,$('#fNote').value);
+  const a=parseFloat(o.amt);if(a>0)$('#fAmt').value=String(Math.round(a*100)/100);
+  if(o.mode==='cash'||o.mode==='bank')seg('#fMode',o.mode);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(String(o.date||'')))$('#fDate').value=o.date;
+  if(o.note)$('#fNote').value=String(o.note).slice(0,300);
+  syncForm();
+}
+const aiErr=e=>e&&(e.code==='not_granted'||e.code==='sampling_disabled')?(sample=null,aiBtns(),'Claude reading is off for this page.'):e&&e.code==='rate_limited'?'Too many requests — try again in a minute.':'Claude could not read it. Fill the fields by hand.';
+$('#btnAiText').onclick=async()=>{
+  const heard=$('#eHeard').textContent.replace(/^Heard:\s*/,'');if(!sample||!heard)return;
+  $('#eStatus').textContent='Claude is reading…';$('#btnAiText').disabled=true;
+  try{applyAI(await sample.json(rules()+'\n\nThe spoken note:\n'+heard,{modelTier:'quick'}));$('#eStatus').textContent='Filled by Claude — check and save.'}
+  catch(e){$('#eStatus').textContent=aiErr(e)}finally{$('#btnAiText').disabled=false}
+};
+async function readPhoto(){
+  if(!sample||!cur.blob)return;$('#eStatus').textContent='Claude is reading the photo…';$('#btnAiPhoto').disabled=true;
+  try{applyAI(await sample.json(rules()+'\n\nThe attached image is a receipt, bill, voucher, handwritten slip or payment screenshot for this entry. Read the amount, the other party, the date and what it was for. If the payee or payer is a shop or vendor and it is clearly for one of the heads, use cat "head".',{images:[cur.blob],modelTier:'default'}));$('#eStatus').textContent='Filled from the photo — check and save.'}
+  catch(e){$('#eStatus').textContent=e&&e.code==='images_unavailable'?'Photo reading is not available here.':aiErr(e)}finally{$('#btnAiPhoto').disabled=false}
+}
+$('#btnAiPhoto').onclick=readPhoto;
+
+/* ---------- list clicks ---------- */
+document.addEventListener('click',e=>{
+  const p=e.target.closest('[data-party]');if(p){openParty(p.dataset.party,p.dataset.k);return}
+  const tx=e.target.closest('[data-tx]');if(tx){const x=T.find(y=>y.id===tx.dataset.tx);if(x){if(party)close($('#shParty'));openEntry(x,'')}}
+});
+$('#pSettle').onclick=()=>{const {name,k,bal,head}=party;close($('#shParty'));openEntry({dir:bal>0?'in':'out',cat:k==='H'?'loan':head?'head':'gen',acct:name,amt:Math.abs(bal),note:'Settled'},'')};
+$('#pAdd').onclick=()=>{const {name,k,head}=party;close($('#shParty'));openEntry({cat:k==='H'?'loan':head?'head':'gen',acct:name},'')};
+$('#pCopy').onclick=()=>copy(statement(),'Statement');
+$('#pWa').onclick=()=>waOpen(statement(),'Send statement');
+function waHref(){$('#wGo').href='https://wa.me/?text='+encodeURIComponent($('#wTxt').value)}
+function waOpen(t,ttl){$('#wTitle').textContent=ttl||'Send a note';$('#wTxt').value=t;waHref();open('#shWa')}
+$('#wTxt').addEventListener('input',waHref);
+$('#wCopy').onclick=()=>copy($('#wTxt').value,'Message');
+$('#wGo').addEventListener('click',()=>setTimeout(()=>close($('#shWa')),400));
+function waMsg(x){
+  const amt=inr(x.amt),how=x.mode==='bank'?'by bank transfer':x.mode==='adj'?'(split share)':'in cash',d=new Date((x.date||today())+'T00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  if(x.cat==='head'){const p=x.who?(x.dir==='in'?` from ${x.who}`:` to ${x.who}`):'';return x.dir==='in'?`Received ${amt}${p} ${how} on ${d} towards ${x.acct}. Thank you.`:`Paid ${amt}${p} ${how} on ${d} on behalf of ${x.acct}.`}
+  const k=x.acct.toLowerCase(),loan=x.cat==='loan';
+  const bal=Math.round(T.filter(y=>y.id!==x.id).concat([x]).filter(y=>y.acct&&y.acct.toLowerCase()===k&&(loan?y.cat==='loan':y.cat!=='loan'&&y.cat!=='self')).reduce((s,y)=>s+(y.dir==='out'?1:-1)*(+y.amt||0),0)*100)/100;
+  let m=x.dir==='in'?`Received ${amt} from you ${how} on ${d}${loan?(bal<0?' as a hand loan':' against the hand loan'):''}. Thank you.`
+                   :(loan&&bal>0?`Given ${amt} to you ${how} on ${d} as a hand loan.`:`Paid ${amt} to you ${how} on ${d}${loan?' towards the hand loan':''}.`);
+  m+='\n'+(bal>=.5?`Balance due from you: ${inr(bal)}.`:bal<=-.5?`Balance due to you: ${inr(bal)}.`:'Account fully settled.');
+  return m;
+}
+
+/* ---------- settings, csv ---------- */
+$('#btnSet').onclick=()=>{lastNote();$('#sOpen').value=String(S.opening||0);$('#sHeads').value=S.heads.join('\n');$('#sPeople').value=(S.people||[]).join('\n');{const A=Object.entries(S.alias||{});$('#sAlias').textContent=A.length?'Learnt from your corrections: '+A.map(([h,n])=>`“${h}” → ${n}`).join(', '):'';$('#sAliasClr').hidden=!A.length}storeNote();open('#shSet')};
+function backupBlob(){const at=new Date().toISOString();S.lastBackup=at;lsSave();return new File([JSON.stringify({app:'nms-ka-paisa',v:1,at,t:T,sp:SP,s:S})],`nms-rupee-manager-backup-${today()}.json`,{type:'application/json'})}
+function lastNote(){const l=S.lastBackup;$('#sLast').textContent=l?`Last backup: ${nice(l.slice(0,10))} (${days(l.slice(0,10))} days ago). Your data lives only on this phone — back up every week.`:'No backup yet. Your data lives only on this phone — save a backup and keep it in Google Drive or WhatsApp.'}
+$('#bSave').onclick=()=>{const f=backupBlob(),u=URL.createObjectURL(f),a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);lastNote();toast('Backup saved to Downloads')};
+$('#bShare').onclick=async()=>{const f=backupBlob();try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:'NMS ₹ manager backup'});lastNote()}else{$('#bStatus').textContent='Sharing files is not supported here — use Save backup file.'}}catch(e){}};
+let pending=null;
+function restore(txt){
+  let o;try{o=JSON.parse(txt)}catch(e){$('#bStatus').textContent='That is not a backup file.';return}
+  if(!o||!Array.isArray(o.t)){$('#bStatus').textContent='That is not an NMS ₹ manager backup.';return}
+  pending=o;
+  $('#bStatus').innerHTML=`Backup has ${o.t.length} entries and ${(o.sp||[]).length} splits${o.at?' (from '+esc(nice(String(o.at).slice(0,10)))+')':''}. It replaces what is on this phone. <button class="ghost danger" id="bYes" style="width:100%;margin-top:8px">Yes, replace with this backup</button>`;
+}
+$('#bStatus').addEventListener('click',e=>{if(!e.target.closest('#bYes')||!pending)return;const o=pending;pending=null;
+  const fixPh=x=>{if(x&&x.photo&&!String(x.photo.url||'').startsWith('data:image/'))x.photo=null;return x};
+  T=o.t.map(fixPh);SP=Array.isArray(o.sp)?o.sp:[];if(o.s)S=Object.assign({opening:0,heads:DEF_HEADS.slice(),people:DEF_PEOPLE.slice()},o.s);S.heads=fixHeads(S.heads||[]);
+  lsSave();render();lastNote();storeNote();$('#bStatus').textContent='';close($('#shSet'));toast(`Restored ${T.length} entries`)});
+$('#bOpen').onclick=()=>$('#bFile').click();
+$('#bFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(f)restore(await f.text())};
+$('#bPaste').onclick=()=>{$('#bPasteW').hidden=false;$('#bTxt').focus()};
+$('#bPasteGo').onclick=()=>restore($('#bTxt').value.trim());
+$('#sAliasClr').onclick=async()=>{S.alias={};try{await putSet()}catch(e){}$('#sAlias').textContent='';$('#sAliasClr').hidden=true};
+$('#sSave').onclick=async()=>{
+  S.opening=parseFloat(String($('#sOpen').value).replace(/[^\d.-]/g,''))||0;
+  S.heads=[...new Set($('#sHeads').value.split('\n').map(s=>s.trim()).filter(Boolean))];
+  S.people=[...new Set($('#sPeople').value.split('\n').map(s=>title(s)).filter(Boolean))];
+  try{await putSet();close($('#shSet'));toast('Settings saved')}catch(e){$('#sStore').textContent='Could not save settings.'}
+};
+$('#btnCsv').onclick=()=>{
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const rows=T.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(x=>[x.date,x.dir==='in'?'Received':'Paid',CATN[x.cat]||'Person',x.acct,x.who,x.amt,x.mode==='bank'?'Bank':x.mode==='adj'?'Split':'Cash',x.note,x.photo?'yes':''].map(q).join(','));
+  copy(['Date,Type,Kind,Account,Person,Amount,Mode,Note,Photo'].concat(rows).join('\n'),'All entries (CSV)');
+};
+function storeNote(){
+  const l=S.lastBackup,d=l?days(l.slice(0,10)):null;
+  $('#storeNote').textContent=!l?'Saved on this phone. Back up from Settings so nothing is lost if the phone is lost.':d>7?`Last backup ${d} days ago — back up from Settings.`:'Saved on this phone · backed up '+nice(l.slice(0,10));
+  $('#storeNote').className='note'+(!l||d>7?' warn':'');
+}
+$('#sImport').onclick=async()=>{const l=lsLoad();try{for(const x of l.t)if(x&&x.id)await db.collection('txns').doc(String(x.id)).set(x);for(const x of l.sp)if(x&&x.id)await db.collection('splits').doc(String(x.id)).set(x);localStorage.removeItem(LK);storeNote();toast(`${l.t.length} entries moved`)}catch(e){$('#sStore').textContent='Could not move them all; try again.'}};
+
+/* ---------- dictation ---------- */
+let base='',listening=false,micT='#say';
+function micStart(target){
+  if(listening){dict.stop().catch(()=>{});return}
+  micT=target;base=$(micT).value?$(micT).value.trim()+' ':'';
+  dict.start().catch(e=>{$('#hint').textContent=e&&e.code==='not_granted'?'Microphone not allowed — use your keyboard mic.':'Could not start listening.'});
+}
+$('#mic').onclick=()=>{if(!dict){$('#say').focus();$('#hint').textContent='Use the mic on your keyboard to speak, then tap Go.';return}micStart('#say')};
+function micText(v){const el=$(micT);if(el)el.value=v;if(micT==='#spNarr')spNarr=v}
+function micState(on){listening=on;$('#mic').classList.toggle('on',on&&micT==='#say');$('#mic').setAttribute('aria-label',on?'Stop listening':'Speak a transaction');const sm=$('#spMic');if(sm){sm.classList.toggle('on',on&&micT==='#spNarr');sm.textContent=on&&micT==='#spNarr'?'Stop':'🎙 Speak'}
+  $('#hint').textContent=on?'Listening… speak naturally, tap the mic again when done.':HINT;
+  if(!on&&base!==null){const v=$(micT)?.value.trim();if(v&&base!==''+v+' '){if(micT==='#say')handle(v);else if(micT==='#spNarr'){spNarr=v;spReadNarr()}}}}
+
+/* ---------- split ---------- */
+let spId=null,spArm=false,spBy=ME,spMode='cash',spNarr='',spDraft=[],spCtl=null;
+const MEW=/\b(me|i|myself|maine|mene|mai|main|mera|mine|self|mujhe)\b/;
+const FILL=/\b(paid|pay|gave|given|by|for|on|of|the|a|rs|inr|rupees?|rupaye|cash|bank|upi|gpay|online|ne|ko|se|kiya|kia|diya|diye|liya|kharcha|spent|spend|towards|me|i|myself|maine|mene|mai|main|mujhe|and|to|was|is|amount|expense|expenses|ka|ki|ke|wala|wale|par|paise|paisa|did|done|put|has|have|liye|lie|vaste|waste|for)\b/g;
+function parseItems(text,e){
+  const ppl=(e.people||[]).map(p=>p.n);
+  const t=text.replace(/(\d),(?=\d)/g,'$1').replace(/₹/g,' ');
+  const parts=t.split(/\n|;|,|\.(?!\d)|\b(?:then|also|aur|phir|plus)\b/i).flatMap(p=>{const q=p.split(/\band\b/i);return q.length>1&&q.every(x=>/\d|thousand|hundred|hazaa?r|lakh/i.test(x))?q:[p]}).map(x=>x.trim()).filter(Boolean);
+  const cands=ppl.filter(n=>n!==ME).concat(known().filter(n=>n!=='Me'&&!ppl.includes(n)&&!S.heads.includes(n)));
+  let lastBy=ME;const out=[];
+  for(const part of parts){
+    const o=parse(part);if(!(o.amt>0))continue;
+    const low=words2num(' '+part.toLowerCase()+' ');
+    const words=low.replace(/[^a-z ]/g,' ').split(/\s+/).filter(Boolean);
+    let by='',hit=[];
+    for(const len of[2,1]){if(by)break;for(let i=0;i+len<=words.length&&!by;i++){const ph=words.slice(i,i+len).join(' ');if(ph.length<3)continue;const pk=pkey(ph);const f=(S.alias||{})[ph]||cands.find(n=>n.toLowerCase()===ph||(pk.length>=2&&pkey(n)===pk));if(f){by=f;hit=words.slice(i,i+len)}}}
+    if(!by&&MEW.test(low))by=ME;
+    if(!by&&o.acct&&!S.heads.includes(o.acct)){by=o.acct;hit=o.acct.toLowerCase().split(' ')}
+    by=by||ME;
+    const note=title(words.filter(w=>!hit.includes(w)).join(' ').replace(FILL,' ').replace(/\b(thousand|hundred|hazaa?r|hajar|lakhs?|lacs?|crore|k)\b/g,' ').replace(/\s+/g,' ').trim())||'Expense';
+    out.push({by,amt:o.amt,note,mode:by===ME?o.mode:'',isNew:!ppl.includes(by)});
+  }
+  return out;
+}
+function spReadNarr(){
+  const e=SP.find(x=>x.id===spId);if(!e)return;spNarr=$('#spNarr').value;
+  spDraft=parseItems(spNarr,e);renderSp();
+  $('#spStatus').textContent=spDraft.length?'':'No amounts heard. Say something like: hotel 9000 paid by me, fuel 3000 Pavan.';
+  if(!sample||!spDraft.length)return;
+  spCtl?.abort();const ctl=spCtl=new AbortController(),ppl=(e.people||[]).map(p=>p.n);
+  $('#spStatus').textContent='Claude is double-checking…';
+  sample.json(`Turn a spoken list of shared expenses for the event "${e.name}" into JSON. People in the event: ${JSON.stringify(ppl)} ("Me" is the speaker: I, me, myself, maine). Other known names: ${JSON.stringify(known().slice(0,80))}. Speech-to-text may turn "to" into 2 and "for" into 4 beside amounts, and may misspell names: map them to the names above. If no payer is said for an item, the payer is "Me". Reply with only a JSON array of {"by":string,"amt":number,"note":string (2-4 words, what it was for),"mode":"cash"|"bank"} — mode only matters when by is "Me"; "bank" for UPI, GPay, card, transfer.\n\nThe narration:\n${spNarr}`,{modelTier:'quick',signal:ctl.signal}).then(r=>{
+    if(ctl.signal.aborted||!Array.isArray(r))return;
+    const d=r.map(x=>({by:x&&x.by?(String(x.by).toLowerCase()==='me'?ME:canon(String(x.by))):ME,amt:Math.round((parseFloat(x&&x.amt)||0)*100)/100,note:title(String(x&&x.note||'Expense')).slice(0,60),mode:x&&x.mode==='bank'?'bank':'cash'})).filter(x=>x.amt>0);
+    if(!d.length)return;d.forEach(x=>{if(x.by!==ME)x.mode='';x.isNew=!ppl.includes(x.by)});
+    spDraft=d;renderSp();$('#spStatus').innerHTML='<span class="z">Checked by Claude.</span>';
+  }).catch(err=>{if(err&&err.code!=='cancelled'){if(err.code==='not_granted'||err.code==='sampling_disabled')sample=null;const st=$('#spStatus');if(st)st.textContent=''}});
+}
+function spCalc(e){
+  const R=+e.R||1,P=e.people||[],items=e.items||[],W=P.reduce((s,p)=>s+(+p.w||1),0)||1;
+  const total=Math.round(items.reduce((s,i)=>s+(+i.amt||0),0)*100)/100;
+  const rows=P.map(p=>{const w=+p.w||1,share=Math.round(total*w/W/R)*R,paid=items.filter(i=>i.by===p.n).reduce((s,i)=>s+(+i.amt||0),0);return{n:p.n,w,share,paid,net:Math.round((paid-share)*100)/100}});
+  const cr=rows.filter(r=>r.net>0).map(r=>({n:r.n,v:r.net})).sort((a,b)=>b.v-a.v),dr=rows.filter(r=>r.net<0).map(r=>({n:r.n,v:-r.net})).sort((a,b)=>b.v-a.v);
+  const tr=[];let i=0,j=0;
+  while(i<dr.length&&j<cr.length){const v=Math.min(dr[i].v,cr[j].v),rv=Math.round(v/R)*R;if(rv>0)tr.push({from:dr[i].n,to:cr[j].n,amt:rv});dr[i].v-=v;cr[j].v-=v;if(dr[i].v<.01)i++;if(cr[j].v<.01)j++}
+  const per=P.length?Math.round(total/W/R)*R:0;
+  return{total,rows,tr,per,R,diff:Math.round((total-rows.reduce((s,r)=>s+r.share,0))*100)/100};
+}
+function spSettled(e){
+  if(!e.posted)return false;const B=books(),L=new Map(B.L.map(r=>[r.name.toLowerCase(),r.bal]));
+  const ac=T.filter(x=>x.split===e.id&&x.cat==='gen').map(x=>x.acct.toLowerCase());
+  return ac.every(a=>Math.abs(L.get(a)||0)<.5);
+}
+function renderSplit(){
+  const open=SP.filter(e=>!e.closed).sort((a,b)=>(b.date||'').localeCompare(a.date||'')),done=SP.filter(e=>e.closed).sort((a,b)=>(b.closedAt||'').localeCompare(a.closedAt||''));
+  $('#spSum').textContent=open.length?`${open.length} open`:'';
+  $('#spList').innerHTML=open.length?open.map(e=>{const c=spCalc(e),st=spSettled(e)?'Settled — ready to close':e.posted?'Posted to my ledger':`${(e.items||[]).length} expense${(e.items||[]).length===1?'':'s'}`;return `<button class="row" data-sp="${esc(e.id)}"><span class="nm">${esc(e.name)}</span><span class="amt">${inr(c.total)}<small>${inr(c.per)} each</small></span><span class="sub">${esc(nice(e.date))} · ${(e.people||[]).length} people · ${esc(st)}</span></button>`}).join(''):'<div class="empty">No open splits. Start one for a trip, an outing or a dinner: add who is in, who paid what, and it works out who pays whom.</div>';
+  $('#spLogN').textContent=done.length?`(${done.length})`:'';
+  $('#spLog').innerHTML=done.length?done.map(e=>`<div class="logl"><b>${esc(e.name)}</b>${esc(e.log||'')} · closed ${esc(nice(e.closedAt))}</div>`).join(''):'<div class="empty">Closed events leave one line here.</div>';
+  if(spId)renderSp();
+}
+function renderSp(){
+  const e=SP.find(x=>x.id===spId);if(!e||e.closed){close($('#shSp'));return}
+  const c=spCalc(e),meIn=(e.people||[]).some(p=>p.n===ME);
+  $('#spTitle').textContent=e.name;
+  const ppl=(e.people||[]).map(p=>p.n);if(!ppl.includes(spBy))spBy=ppl[0]||ME;
+  let h=`<div class="pbig">${inr(c.total)}</div><div class="sub3">${esc(nice(e.date))} · ${ppl.length} people · ${inr(c.per)} per share${c.diff?` · rounding ${c.diff>0?'left over':'extra'} ${inr(c.diff)} not collected`:''}</div>`;
+  h+=`<h4>People</h4><div class="grid"><span class="h">Name · shares</span><span class="h n">Paid</span><span class="h n">Share</span><span class="h n">Net</span>`;
+  h+=c.rows.map(r=>`<span>${esc(r.n)}<select data-w="${esc(r.n)}" aria-label="Shares for ${esc(r.n)}">${[1,2,3,4,5].map(k=>`<option${k===r.w?' selected':''}>${k}</option>`).join('')}</select></span><span class="n">${inr(r.paid)}</span><span class="n">${inr(r.share)}</span><span class="n ${r.net>0?'r':r.net<0?'p':'z'}">${r.net<0?'−':''}${inr(r.net)}</span>`).join('')+'</div>';
+  h+=`<div class="addrow"><input id="spPerson" placeholder="Add a person" autocomplete="off" autocapitalize="words"><button class="ghost" data-act="addp">Add person</button></div><div class="chips sg" id="sgSp" hidden></div>`;
+  h+=`<h4>Who pays whom</h4>`+(c.tr.length?c.tr.map(t=>`<div class="tr"><span>${esc(t.from)} → ${esc(t.to)}</span><b>${inr(t.amt)}</b></div>`).join(''):'<div class="sub3">Nothing to settle yet.</div>');
+  h+=`<h4>Expenses</h4>`+((e.items||[]).length?e.items.map(i=>`<div class="it"><span><b>${esc(i.by)}</b> · ${esc(i.note||'Expense')}<span class="sub3"> · ${esc(nice(i.date))}${i.by===ME?' · '+(i.mode==='bank'?'bank':i.mode==='none'?'not from my book':'cash'):''}</span></span><b>${inr(i.amt)}</b><button data-act="rmi" data-id="${esc(i.id)}" aria-label="Remove expense">×</button></div>`).join(''):'<div class="sub3">No expenses yet.</div>');
+  h+=`<h4>Speak or type expenses</h4><textarea id="spNarr" class="narr" rows="3" placeholder="Hotel 9000 by me, fuel 3000 Pavan, dinner 2400 Maksud. Lines with no name count as paid by you.">${esc(spNarr)}</textarea><div class="keys2">${dict?`<button class="ghost" id="spMic" data-act="spmic">🎙 Speak</button>`:''}<button class="go" data-act="narr">Read expenses</button></div>`;
+  if(spDraft.length){
+    h+=`<div class="prev">`+spDraft.map((d,i)=>`<div class="pv"><select data-dp="${i}" aria-label="Paid by">${[...new Set(ppl.concat([d.by]))].map(n=>`<option${n===d.by?' selected':''}>${esc(n)}</option>`).join('')}</select><input data-dn="${i}" value="${esc(d.note)}" aria-label="What for"><input data-da="${i}" inputmode="decimal" value="${esc(String(d.amt))}" aria-label="Amount"><button data-act="rmd" data-i="${i}" aria-label="Remove line">×</button>${d.isNew?`<span class="sub3 wide">${esc(d.by)} will be added to this split</span>`:''}${d.by===ME&&d.mode==='bank'?'<span class="sub3 wide">From my bank</span>':''}</div>`).join('')+`</div>`;
+    h+=`<button class="primary" data-act="addall" style="margin-top:10px">Add ${spDraft.length} expense${spDraft.length>1?'s':''} · ${inr(spDraft.reduce((a,d)=>a+d.amt,0))}</button>`;
+  }
+  h+=`<h4>Or add one by hand</h4>`;
+  h+=`<div class="addrow"><select id="spBy" aria-label="Paid by">${ppl.map(n=>`<option${n===spBy?' selected':''}>${esc(n)}</option>`).join('')}</select><input id="spAmt" inputmode="decimal" placeholder="Amount ₹"><input id="spNote" class="wide" placeholder="What for — hotel, fuel, dinner"></div>`;
+  h+=spBy===ME?`<div class="seg" id="spMode" style="margin-top:8px">${[['cash','My cash'],['bank','My bank'],['none','Not in my book']].map(([v,l])=>`<button data-m="${v}" aria-pressed="${v===spMode}">${l}</button>`).join('')}</div>`:'';
+  h+=`<button class="ghost" data-act="additem" style="width:100%;margin-top:8px">Add expense</button>`;
+  h+=`<h4>Round shares to</h4><div class="seg">${[1,10,50,100].map(r=>`<button data-r="${r}" aria-pressed="${r===(+e.R||1)}">${r===1?'Exact ₹1':'₹'+r}</button>`).join('')}</div>`;
+  if(spSettled(e))h+=`<div class="ok">Everyone's share is settled in your ledger. Close this event to clear it.</div>`;
+  h+=`<div class="acts">`+(meIn?`<button class="ghost" data-act="post">${e.posted?'Update my ledger':'Post my part to ledger'}</button>`:'')+`<button class="ghost" data-act="copy">Copy summary</button><button class="ghost" data-act="wa">WhatsApp</button><button class="ghost danger" data-act="close">${spArm?'Tap again to close for good':'Close event'}</button></div>`;
+  if(meIn)h+=`<div class="sub3" style="margin-top:8px">Posting adds what others owe you, or you owe them, to your ledger, and records what you paid in cash or bank in your day book. Settle people there as usual.</div>`;
+  h+=`<div class="status" id="spStatus"></div>`;
+  $('#spBody').innerHTML=h;
+  hookSugg($('#spPerson'),$('#sgSp'));
+}
+function spSummary(e){const c=spCalc(e);return [`${e.name} — ${nice(e.date)}`,`Total ${inr(c.total)} · ${(e.people||[]).length} people · ${inr(c.per)} per share`,...c.rows.map(r=>`${r.n}: paid ${inr(r.paid)}, share ${inr(r.share)}`),'Settle:',...(c.tr.length?c.tr.map(t=>`${t.from} pays ${t.to} ${inr(t.amt)}`):['All square']),c.diff?`Rounding of ${inr(c.diff)} not collected or given.`:''].filter(Boolean).join('\n')}
+const clone=e=>JSON.parse(JSON.stringify(e));
+async function spSave(e){try{await putSp(e)}catch(err){const st=$('#spStatus');if(st)st.textContent='Could not save.'}}
+$('#spBody').addEventListener('input',e=>{
+  if(e.target.id==='spNarr'){spNarr=e.target.value;return}
+  const n=e.target.dataset.dn,a=e.target.dataset.da;
+  if(n!=null&&spDraft[n])spDraft[n].note=e.target.value;
+  if(a!=null&&spDraft[a])spDraft[a].amt=Math.round((parseFloat(String(e.target.value).replace(/[^\d.]/g,''))||0)*100)/100;
+});
+$('#spBody').addEventListener('change',e=>{
+  const dp=e.target.dataset.dp;if(dp!=null&&spDraft[dp]){const ppl=(SP.find(x=>x.id===spId)?.people||[]).map(p=>p.n);spDraft[dp].by=e.target.value;spDraft[dp].isNew=!ppl.includes(e.target.value);if(e.target.value!==ME)spDraft[dp].mode='';renderSp();return}
+  const w=e.target.closest('[data-w]');if(w){const x=clone(SP.find(y=>y.id===spId));const p=x.people.find(p=>p.n===w.dataset.w);if(p){p.w=+w.value;spSave(x)}}
+  if(e.target.id==='spBy'){spBy=e.target.value;const a=$('#spAmt').value,n=$('#spNote').value;renderSp();$('#spAmt').value=a;$('#spNote').value=n}
+});
+$('#spBody').addEventListener('click',async e=>{
+  const b=e.target.closest('button');if(!b)return;const cur0=SP.find(y=>y.id===spId);if(!cur0)return;
+  if(b.dataset.m){spMode=b.dataset.m;b.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));return}
+  if(b.dataset.r){const x=clone(cur0);x.R=+b.dataset.r;return spSave(x)}
+  const act=b.dataset.act,x=clone(cur0);
+  if(act!=='close')spArm=false;
+  if(act==='addp'){const n=canon($('#spPerson').value);if(!n)return;const nn=n.toLowerCase()==='me'?ME:n;if(x.people.some(p=>p.n.toLowerCase()===nn.toLowerCase()))return;x.people.push({n:nn,w:1});return spSave(x)}
+  if(act==='rmi'){x.items=x.items.filter(i=>i.id!==b.dataset.id);return spSave(x)}
+  if(act==='narr'){spReadNarr();return}
+  if(act==='spmic'){micStart('#spNarr');return}
+  if(act==='rmd'){spDraft.splice(+b.dataset.i,1);renderSp();return}
+  if(act==='addall'){
+    spCtl?.abort();const ok=spDraft.filter(d=>d.amt>0);if(!ok.length)return;
+    for(const d of ok){if(!x.people.some(p=>p.n===d.by))x.people.push({n:d.by,w:1});x.items.push({id:uid(),by:d.by,amt:d.amt,note:d.note,date:today(),mode:d.by===ME?(d.mode==='bank'?'bank':'cash'):''})}
+    const n=ok.length;spDraft=[];spNarr='';await spSave(x);toast(`${n} expense${n>1?'s':''} added`);return;
+  }
+  if(act==='additem'){const a=parseFloat(String($('#spAmt').value).replace(/[^\d.]/g,''));if(!(a>0)){$('#spStatus').textContent='Enter an amount.';return}x.items.push({id:uid(),by:$('#spBy').value,amt:Math.round(a*100)/100,note:$('#spNote').value.trim(),date:today(),mode:$('#spBy').value===ME?spMode:''});return spSave(x)}
+  if(act==='copy')return copy(spSummary(x),'Split summary');
+  if(act==='wa')return waOpen(spSummary(x),'Send split summary');
+  if(act==='post'){
+    b.disabled=true;$('#spStatus').textContent='Posting…';
+    try{
+      for(const o of T.filter(t=>t.split===x.id))await delTx(o.id);
+      const c=spCalc(x),add=[];
+      for(const t of c.tr){if(t.to===ME)add.push({cat:'gen',dir:'out',acct:canon(t.from),amt:t.amt,note:`Split: ${x.name} — their share`});else if(t.from===ME)add.push({cat:'gen',dir:'in',acct:canon(t.to),amt:t.amt,note:`Split: ${x.name} — my share`})}
+      for(const i of x.items)if(i.by===ME&&i.mode!=='none')add.push({cat:'self',dir:'out',acct:'',amt:+i.amt,mode:i.mode==='bank'?'bank':'cash',date:i.date,note:`Split: ${x.name} — ${i.note||'paid by me'}`});
+      let k=0;for(const a of add)await putTx(Object.assign({id:uid(),who:'',mode:'adj',date:x.date||today(),photo:null,ts:Date.now()+k++,split:x.id},a));
+      x.posted=true;await putSp(x);toast(`${add.length} ledger entr${add.length===1?'y':'ies'} posted`);
+    }catch(err){$('#spStatus').textContent='Could not post. Try again.'}finally{b.disabled=false}
+    return;
+  }
+  if(act==='close'){
+    if(!spArm){spArm=true;renderSp();return}
+    const c=spCalc(x);
+    const fin={id:x.id,name:x.name,date:x.date,closed:true,closedAt:today(),log:` ${(x.people||[]).length} people · total ${inr(c.total)} · ${inr(c.per)} per share`};
+    try{await putSp(fin);close($('#shSp'));toast('Event closed')}catch(err){$('#spStatus').textContent='Could not close.'}
+  }
+});
+$('#spList').addEventListener('click',e=>{const b=e.target.closest('[data-sp]');if(!b)return;spDraft=[];spNarr='';spId=b.dataset.sp;spArm=false;spBy=ME;spMode='cash';renderSp();open('#shSp')});
+$('#spNew').onclick=()=>{$('#snName').value='';$('#snPeople').value='';$('#sgSn').innerHTML=known().filter(n=>!S.heads.includes(n)).slice(0,12).map(n=>`<button type="button" class="chip" data-fill="${esc(n)}">+ ${esc(n)}</button>`).join('');$('#snMe').checked=true;seg('#snR','1');$('#snDate').value=today();$('#snStatus').textContent='';open('#shSpNew')};
+$('#sgSn').addEventListener('click',e=>{const b=e.target.closest('[data-fill]');if(!b)return;const t=$('#snPeople'),cur=t.value.split(/[,\n]/).map(x=>x.trim()).filter(Boolean);if(!cur.some(x=>x.toLowerCase()===b.dataset.fill.toLowerCase()))cur.push(b.dataset.fill);t.value=cur.join(', ');b.remove()});
+$('#snR').addEventListener('click',e=>{const b=e.target.closest('button');if(b)seg('#snR',b.dataset.v)});
+$('#snSave').onclick=async()=>{
+  const name=$('#snName').value.trim();if(!name){$('#snStatus').textContent='Give the event a name.';return}
+  const ns=[...new Set($('#snPeople').value.split(/[,\n&]|\band\b|\bwith\b/i).map(canon).filter(Boolean).filter(n=>n.toLowerCase()!=='me'))];
+  const people=($('#snMe').checked?[ME]:[]).concat(ns).map(n=>({n,w:1}));
+  if(people.length<2){$('#snStatus').textContent='Add at least two people.';return}
+  const x={id:uid(),name,date:$('#snDate').value||today(),R:+$('#snR').dataset.v||1,people,items:[],posted:false,closed:false};
+  try{await putSp(x);close($('#shSpNew'));spId=x.id;spBy=ME;spMode='cash';renderSp();open('#shSp')}catch(e){$('#snStatus').textContent='Could not create it.'}
+};
+function view(){const v=location.hash==='#split'?'split':'book';$('#vBook').hidden=v!=='book';$('#vSplit').hidden=v!=='split';document.body.classList.toggle('split',v==='split');seg('#tabs',v)}
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;location.hash=b.dataset.v;view()});
+window.addEventListener('hashchange',view);view();
+
+/* ---------- phone speech recognition ---------- */
+function pickAlt(res){
+  // among the recogniser's guesses, prefer the one naming people/heads we know and holding an amount
+  const K=known().map(n=>pkey(n)).filter(Boolean);let best=res[0].transcript,bs=-1;
+  for(let a=0;a<res.length;a++){const t=res[a].transcript,w=t.toLowerCase().replace(/[^a-z0-9 ]/g,' ').split(/\s+/);
+    let sc=(/\d/.test(t)?2:0)+(res[a].confidence||0);for(const x of w){const k=pkey(x);if(k.length>=2&&K.includes(k))sc+=3}
+    if(sc>bs){bs=sc;best=t}}
+  return best;
+}
+function nativeDict(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return null;
+  let rec=null,want=false;const cb={p(){},f(){},s(){}};
+  const run=()=>{rec=new SR();rec.lang=S.lang||'en-IN';rec.continuous=false;rec.interimResults=true;rec.maxAlternatives=5;
+    rec.onresult=e=>{let interim='';for(let i=e.resultIndex;i<e.results.length;i++){const r=e.results[i];if(r.isFinal)cb.f({text:pickAlt(r).trim()});else interim+=r[0].transcript}if(interim)cb.p({text:interim})};
+    rec.onerror=e=>{if(e.error==='not-allowed'||e.error==='service-not-allowed'||e.error==='audio-capture'){want=false;$('#hint').textContent='Microphone blocked — allow it for this app in your phone settings.'}};
+    rec.onend=()=>{if(want){try{run()}catch(e){want=false;cb.s({state:'idle'})}}else cb.s({state:'idle'})};
+    rec.start()};
+  return{start(){want=true;try{run();cb.s({state:'listening'});return Promise.resolve()}catch(e){want=false;return Promise.reject(e)}},
+    stop(){want=false;try{rec&&rec.stop()}catch(e){}return Promise.resolve()},
+    onPartial(f){cb.p=f},onFinal(f){cb.f=f},onState(f){cb.s=f}};
+}
+
+/* ---------- boot ---------- */
+render();storeNote();
+const C=window.claude;
+if(C&&C.use){
+  C.use('db').then(d=>{
+    if(!d){storeNote();return}
+    db=d;mode='db';T=[];SP=[];render();
+    db.collection('splits').onSnapshot(s=>{SP=s.docs.map(x=>Object.assign({},x.data(),{id:x.id}));renderSplit()},()=>{});
+    $('#storeNote').textContent='Opening your book…';
+    const timer=setTimeout(()=>{$('#storeNote').textContent='Your book cannot be reached yet — check the connection.';$('#storeNote').className='note warn'},10000);
+    db.collection('txns').onSnapshot(s=>{T=s.docs.map(x=>Object.assign({},x.data(),{id:x.id}));if(!s.metadata.fromCache){clearTimeout(timer);storeNote()}render()},e=>{clearTimeout(timer);$('#storeNote').textContent='Your book is not available in this view.';$('#storeNote').className='note warn'});
+    db.doc('meta/settings').onSnapshot(s=>{if(s.exists){const v=s.data();S={opening:+v.opening||0,heads:Array.isArray(v.heads)&&v.heads.length?fixHeads(v.heads):DEF_HEADS.slice(),people:Array.isArray(v.people)?v.people.map(String):DEF_PEOPLE.slice(),alias:v.alias&&typeof v.alias==='object'?v.alias:{}};render()}},()=>{});
+  });
+  C.use('assets').then(a=>{assets=a});
+  C.use('sample').then(async s=>{sample=s;if(s){const l=await s.limits().catch(()=>null);canImages=!!(l&&l.images)}});
+  C.use('dictation').then(d=>{
+    dict=d;if(!d)return;
+    $('#hint').textContent=HINT;
+    d.onPartial(({text})=>micText(base+text));
+    d.onFinal(({text})=>{base+=text+' ';micText(base)});
+    d.onState(({state})=>micState(state==='listening'));
+  });
+}else{
+  const d=nativeDict();
+  if(d){dict=d;d.onPartial(({text})=>micText(base+text));d.onFinal(({text})=>{base+=text+' ';micText(base)});d.onState(({state})=>micState(state==='listening'));$('#hint').textContent='Tap the mic and speak — it keeps listening until you tap again.'}
+  else $('#hint').textContent='Use the mic on your keyboard to speak, then tap Go.';
+}
+IDB.get('book').then(o=>{if(o){T=Array.isArray(o.t)?o.t:[];SP=Array.isArray(o.sp)?o.sp:[];if(o.s)S=Object.assign(S,o.s);S.heads=fixHeads(S.heads);if(!Array.isArray(S.people))S.people=DEF_PEOPLE.slice()}
+  else{const l=lsLoad();if(l.t.length||l.sp.length){T=l.t;SP=l.sp}}
+  ready=true;render();storeNote();if(!o)lsSave()}).catch(()=>{ready=true;$('#storeNote').textContent='Storage is not available — are you in private browsing?';$('#storeNote').className='note warn'});
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
