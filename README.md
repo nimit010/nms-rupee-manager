@@ -10,7 +10,7 @@
 
 A personal cash book for the phone. Say *"Paid Ramesh 2000 cash for Society Fund"* and the app works out the amount, the person or head, cash or bank and the date, then shows a card you approve with one tap. It keeps cash in hand, who owes you, whom you owe, hand loans and trip splits tallied, and it runs on iPhone and Android without internet.
 
-**Open the app:** https://nimit010.github.io/nms-rupee-manager/
+**Open the app:** https://raw.githack.com/nimit010/nms-rupee-manager/main/index.html
 
 <p>
 <img src="screenshots/01-home.png" width="200" alt="Home: cash in hand, receivable, payable, ledger">
@@ -48,12 +48,12 @@ A personal cash book for the phone. Say *"Paid Ramesh 2000 cash for Society Fund
 No app store needed.
 
 **iPhone**
-1. Open https://nimit010.github.io/nms-rupee-manager/ in **Safari**.
+1. Open https://raw.githack.com/nimit010/nms-rupee-manager/main/index.html in **Safari**.
 2. Tap **Share** (square with an arrow) → **Add to Home Screen** → **Add**.
 3. Open **NMS ₹ manager** from the home screen. If the app's mic doesn't respond, use the keyboard mic.
 
 **Android**
-1. Open https://nimit010.github.io/nms-rupee-manager/ in **Chrome**.
+1. Open https://raw.githack.com/nimit010/nms-rupee-manager/main/index.html in **Chrome**.
 2. Tap **⋮** → **Install app** (or **Add to Home screen**) → **Install**.
 3. Open it from the home screen and allow the microphone. It listens in Indian English until you tap the mic again.
 
