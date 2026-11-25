@@ -27,7 +27,7 @@ A personal cash book for the phone. Say *"Paid Ramesh 2000 cash for Society Fund
 | **Voice entry** | Mic, keyboard mic or Wispr Flow. One sentence becomes a complete entry. |
 | **One-tap approve** | A card shows what was understood and the balance after it. Every detail is a tap to change. Undo after saving. |
 | **Decides for you** | Heads → that head; loan / udhar → hand loans; ATM or deposit → own cash; anyone else → ledger. Cash unless you say UPI, GPay, NEFT, cheque or bank. |
-| **Understands Indian speech** | "2002 Pavan" (for "two thousand to Pavan") → ₹2,000 to Pavan; "two thousand five hundred", hazaar, lakh; Hindi-English mix such as "se … liya", "udhar", "kal"; sound-alike names. Learns each name you correct. |
+| **Understands Indian speech** | "2002 Ramesh" (for "two thousand to Ramesh") → ₹2,000 to Ramesh; "two thousand five hundred", hazaar, lakh; Hindi-English mix such as "se … liya", "udhar", "kal"; sound-alike names. Learns each name you correct. |
 | **Book at a glance** | Cash in hand, receivable, payable, ledger of people and heads, hand loans with days outstanding, day book. |
 | **Statements and settle** | Tap a name for its statement; settle in one tap; copy or send on WhatsApp. |
 | **WhatsApp notes** | Approve + WhatsApp opens WhatsApp with an acknowledgement and the balance due; you pick the contact. |
